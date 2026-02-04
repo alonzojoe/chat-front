@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StreamChat, Channel as StreamChannel, Event, MessageResponse } from 'stream-chat';
-import { Phone, Video, Info, Send } from 'lucide-react';
+import { Phone, Video, Info, Send, Sparkles } from 'lucide-react';
 
 import type { User } from '../../../shared/types/chat';
 import { getStreamApiKey } from '../../../shared/config/stream';
 import { fetchStreamToken } from '../../../shared/api/streamToken';
-import { Card, IconButton, cx } from '../../../shared/ui/Ui';
+import { Card, Container, IconButton, cx } from '../../../shared/ui/Ui';
 
 const API_KEY = getStreamApiKey();
 
@@ -21,7 +21,12 @@ const formatClock = (date: Date | string | undefined) => {
   return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 };
 
-const Avatar: React.FC<{ name: string; image?: string; size?: number }> = ({ name, image, size = 40 }) => {
+const Avatar: React.FC<{ name: string; image?: string; size?: number; ring?: boolean }> = ({
+  name,
+  image,
+  size = 40,
+  ring = false,
+}) => {
   const initials = (name || '?')
     .split(' ')
     .filter(Boolean)
@@ -31,7 +36,12 @@ const Avatar: React.FC<{ name: string; image?: string; size?: number }> = ({ nam
 
   return (
     <div
-      className="shrink-0 rounded-full bg-slate-200 text-slate-700 grid place-items-center overflow-hidden ring-2 ring-white"
+      className={cx(
+        'shrink-0 rounded-full bg-slate-200 text-slate-700 grid place-items-center overflow-hidden',
+        ring
+          ? 'ring-2 ring-[color:var(--color-primary)] ring-offset-2 ring-offset-white'
+          : 'ring-1 ring-white/70'
+      )}
       style={{ width: size, height: size }}
       aria-label={name}
       title={name}
@@ -215,108 +225,135 @@ export const UserChatPage: React.FC<UserChatProps> = ({
   const avatarImage = (otherMember?.image as string | undefined) || undefined;
 
   return (
-    <div className="h-full w-full bg-transparent">
-      <div className="h-full max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-        <Card className="h-full overflow-hidden">
-          {/* Top purple header */}
-          <div className="bg-[color:var(--color-primary)] text-white px-4 py-3">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                <Avatar name={avatarName} image={avatarImage} size={40} />
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold truncate">{title}</p>
-                  <p className="text-xs text-white/80">Online</p>
+    <div className="h-full w-full">
+      <Container className="h-full py-4 sm:py-6">
+        <Card className="h-[calc(100vh-7rem)] min-h-[640px] overflow-hidden">
+          <div className="h-full flex flex-col bg-white/40 backdrop-blur">
+            {/* Header */}
+            <div className="p-4 border-b border-slate-200/70 bg-white/70 backdrop-blur">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="grid h-10 w-10 place-items-center rounded-2xl bg-[color:var(--color-primary)] text-white shadow-sm">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-900 truncate">{title}</p>
+                    <p className="text-xs text-slate-500 truncate">Private & secure</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <IconButton aria-label="Call">
+                    <Phone className="w-4 h-4" />
+                  </IconButton>
+                  <IconButton aria-label="Video">
+                    <Video className="w-4 h-4" />
+                  </IconButton>
+                  <IconButton aria-label="Info">
+                    <Info className="w-4 h-4" />
+                  </IconButton>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <IconButton className="bg-white/15 border-white/15 text-white shadow-none hover:bg-white/20">
-                  <Phone className="w-4 h-4" />
-                </IconButton>
-                <IconButton className="bg-white/15 border-white/15 text-white shadow-none hover:bg-white/20">
-                  <Video className="w-4 h-4" />
-                </IconButton>
-                <IconButton className="bg-white/15 border-white/15 text-white shadow-none hover:bg-white/20">
-                  <Info className="w-4 h-4" />
-                </IconButton>
+
+              <div className="mt-4 flex items-center gap-3">
+                <Avatar name={avatarName} image={avatarImage} size={44} ring />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 truncate">{avatarName}</p>
+                  <p className="text-xs text-slate-500 truncate">Online</p>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto bg-[color:var(--color-surface-2)] px-4 py-4">
-            <div className="space-y-2">
-              {messages.map((msg, idx) => {
-                const isOwn = msg.user?.id === currentUser.id;
-                const isLast = idx === messages.length - 1;
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5">
+              <div className="space-y-3">
+                {messages.map((msg, idx) => {
+                  const isOwn = msg.user?.id === currentUser.id;
+                  const isLast = idx === messages.length - 1;
 
-                return (
-                  <div key={msg.id} className={cx('flex items-end gap-2', isOwn ? 'justify-end' : 'justify-start')}>
-                    {!isOwn && (
-                      <div className="mb-1">
-                        <Avatar name={msg.user?.name || therapistName} image={(msg.user?.image as string | undefined) || undefined} size={28} />
-                      </div>
-                    )}
+                  return (
+                    <div key={msg.id} className={cx('flex items-end gap-2', isOwn ? 'justify-end' : 'justify-start')}>
+                      {!isOwn ? (
+                        <div className="mb-0.5">
+                          <Avatar
+                            name={msg.user?.name || therapistName}
+                            image={(msg.user?.image as string | undefined) || undefined}
+                            size={28}
+                          />
+                        </div>
+                      ) : null}
 
-                    <div className={cx('max-w-[78%]', isOwn ? 'text-right' : 'text-left')}>
-                      <div
-                        className={cx(
-                          'inline-block px-4 py-2.5 text-sm leading-relaxed shadow-sm',
-                          'rounded-2xl',
-                          isOwn
-                            ? 'bg-[color:var(--color-primary)] text-white rounded-br-md'
-                            : 'bg-white text-slate-900 rounded-bl-md'
-                        )}
-                      >
-                        {msg.text}
-                      </div>
-                      <div className="mt-1 text-[11px] text-slate-500 flex items-center gap-2">
-                        <span>{formatClock(msg.created_at)}</span>
-                        {isOwn && isLast && seenText ? <span className="text-slate-500">{seenText}</span> : null}
+                      <div className={cx('max-w-[78%]', isOwn ? 'text-right' : 'text-left')}>
+                        <div
+                          className={cx(
+                            'inline-block px-4 py-2.5 text-sm leading-relaxed rounded-2xl shadow-sm',
+                            isOwn
+                              ? 'bg-[color:var(--color-primary)] text-white rounded-br-md'
+                              : 'bg-white/90 text-slate-900 border border-slate-200/70 rounded-bl-md'
+                          )}
+                        >
+                          {msg.text}
+                        </div>
+                        <div className="mt-1 text-[11px] text-slate-500 flex items-center gap-2 justify-end">
+                          <span>{formatClock(msg.created_at)}</span>
+                          {isOwn && isLast && seenText ? <span>{seenText}</span> : null}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
 
-              {isTyping && (
-                <div className="flex items-center gap-2 text-sm text-slate-500">
-                  <div className="flex gap-1">
-                    <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" />
-                    <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                    <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                {isTyping ? (
+                  <div className="flex items-center gap-2 text-sm text-slate-500">
+                    <div className="flex gap-1">
+                      <div className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" />
+                      <div
+                        className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"
+                        style={{ animationDelay: '0.1s' }}
+                      />
+                      <div
+                        className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"
+                        style={{ animationDelay: '0.2s' }}
+                      />
+                    </div>
+                    <span>{therapistName} is typing…</span>
                   </div>
-                  <span>{therapistName} is typing…</span>
+                ) : null}
+
+                <div ref={messagesEndRef} />
+              </div>
+            </div>
+
+            {/* Composer */}
+            <div className="p-4 border-t border-slate-200/70 bg-white/70 backdrop-blur">
+              <form onSubmit={sendMessage} className="flex items-end gap-3">
+                <div className="flex-1 rounded-3xl bg-white/80 border border-slate-200/70 px-4 py-3">
+                  <input
+                    value={messageText}
+                    onChange={(e) => handleTyping(e.target.value)}
+                    placeholder="Write a message…"
+                    className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
+                    disabled={isSending}
+                  />
                 </div>
-              )}
-
-              <div ref={messagesEndRef} />
+                <button
+                  type="submit"
+                  disabled={!messageText.trim() || isSending}
+                  className={cx(
+                    'grid h-12 w-12 place-items-center rounded-3xl',
+                    'bg-[color:var(--color-primary)] text-white shadow-sm',
+                    'disabled:opacity-50',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2'
+                  )}
+                  aria-label="Send"
+                >
+                  <Send className="w-5 h-5" />
+                </button>
+              </form>
             </div>
           </div>
-
-          {/* Input */}
-          <div className="border-t border-[color:var(--color-border)] bg-white p-3">
-            <form onSubmit={sendMessage} className="flex items-end gap-2">
-              <div className="flex-1 rounded-2xl bg-[color:var(--color-surface-3)] px-4 py-3">
-                <input
-                  value={messageText}
-                  onChange={(e) => handleTyping(e.target.value)}
-                  placeholder={`Enter message…`}
-                  className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
-                  disabled={isSending}
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={!messageText.trim() || isSending}
-                className="grid h-12 w-12 place-items-center rounded-2xl bg-[color:var(--color-primary)] text-white shadow-sm disabled:opacity-50"
-                aria-label="Send"
-              >
-                <Send className="w-5 h-5" />
-              </button>
-            </form>
-          </div>
         </Card>
-      </div>
+      </Container>
     </div>
   );
 };

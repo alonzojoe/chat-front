@@ -4,7 +4,7 @@ import { ChevronRight, LogOut, Shield } from 'lucide-react';
 import { UserChatPage } from '../pages/user-chat/ui/UserChatPage';
 import { TherapistChatPage } from '../pages/therapist-chat/ui/TherapistChatPage';
 import type { User } from '../shared/types/chat';
-import { Card, IconButton, Pill, PrimaryButton } from '../shared/ui/Ui';
+import { Card, Container, IconButton, Pill, PrimaryButton } from '../shared/ui/Ui';
 
 const DEMO_USERS = {
   patient1: {
@@ -50,8 +50,8 @@ function App() {
   if (!currentUser) {
     return (
       <div className="min-h-screen">
-        <div className="max-w-6xl mx-auto px-4 py-10 sm:py-14">
-          <div className="grid lg:grid-cols-[1.2fr_1fr] gap-8 items-center">
+        <Container className="py-10 sm:py-14">
+          <div className="grid lg:grid-cols-[1.2fr_1fr] gap-10 items-center">
             {/* Left hero */}
             <div>
               <Pill>
@@ -122,7 +122,7 @@ function App() {
               </Card>
             </div>
           </div>
-        </div>
+        </Container>
       </div>
     );
   }
@@ -131,7 +131,7 @@ function App() {
     <div className="min-h-screen flex flex-col">
       {/* Top bar */}
       <header className="sticky top-0 z-50 bg-white/70 backdrop-blur border-b border-[color:var(--color-border)]">
-        <div className="h-14 max-w-6xl mx-auto px-4 flex items-center justify-between">
+        <Container className="h-14 flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <div className="h-9 w-9 rounded-2xl bg-[color:var(--color-primary)] text-white grid place-items-center text-sm font-bold shadow-sm">
               TC
@@ -153,7 +153,7 @@ function App() {
               <LogOut className="w-4 h-4" />
             </IconButton>
           </div>
-        </div>
+        </Container>
       </header>
 
       <main className="flex-1 min-h-0">

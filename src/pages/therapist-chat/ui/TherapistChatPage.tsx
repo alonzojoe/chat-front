@@ -1,11 +1,21 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StreamChat, Channel as StreamChannel, Event, MessageResponse } from 'stream-chat';
-import { ArrowLeft, Search, Plus, Send, Phone, Video, Info } from 'lucide-react';
+import {
+  ArrowLeft,
+  Search,
+  Plus,
+  Send,
+  Phone,
+  Video,
+  Info,
+  Sparkles,
+  MessageCircle,
+} from 'lucide-react';
 
 import type { User } from '../../../shared/types/chat';
 import { getStreamApiKey } from '../../../shared/config/stream';
 import { fetchStreamToken } from '../../../shared/api/streamToken';
-import { Card, IconButton, cx } from '../../../shared/ui/Ui';
+import { Card, Container, IconButton, cx } from '../../../shared/ui/Ui';
 
 const API_KEY = getStreamApiKey();
 
@@ -45,7 +55,9 @@ const Avatar: React.FC<{ name: string; image?: string; size?: number; ring?: boo
     <div
       className={cx(
         'shrink-0 rounded-full bg-slate-200 text-slate-700 grid place-items-center overflow-hidden',
-        ring ? 'ring-2 ring-[color:var(--color-primary)] ring-offset-2 ring-offset-white' : 'ring-2 ring-white'
+        ring
+          ? 'ring-2 ring-[color:var(--color-primary)] ring-offset-2 ring-offset-white'
+          : 'ring-1 ring-white/70'
       )}
       style={{ width: size, height: size }}
       aria-label={name}
@@ -57,6 +69,63 @@ const Avatar: React.FC<{ name: string; image?: string; size?: number; ring?: boo
         <span className="text-xs font-semibold">{initials}</span>
       )}
     </div>
+  );
+};
+
+const ChatListItem: React.FC<{
+  info: ChannelInfo;
+  isActive: boolean;
+  onSelect: () => void;
+}> = ({ info, isActive, onSelect }) => {
+  const hasUnread = info.unreadCount > 0;
+
+  return (
+    <button
+      onClick={onSelect}
+      className={cx(
+        'w-full text-left',
+        'rounded-3xl border transition',
+        'px-3.5 py-3',
+        'bg-white/70 backdrop-blur border-slate-200/70',
+        'hover:bg-white hover:border-slate-200',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2',
+        isActive && 'bg-white border-slate-200 shadow-[0_12px_35px_rgba(15,23,42,0.10)]'
+      )}
+      aria-current={isActive ? 'page' : undefined}
+    >
+      <div className="flex items-center gap-3">
+        <div className="relative">
+          <Avatar name={info.patientName} image={info.patientImage} size={46} ring={isActive || hasUnread} />
+          {hasUnread ? (
+            <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-[color:var(--color-primary)] ring-2 ring-white" />
+          ) : null}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className={cx('text-sm font-semibold truncate', hasUnread ? 'text-slate-900' : 'text-slate-900')}>
+                {info.patientName}
+              </p>
+              <p className={cx('mt-0.5 text-sm truncate', hasUnread ? 'text-slate-700' : 'text-slate-600')}>
+                {info.lastMessage}
+              </p>
+            </div>
+
+            <div className="shrink-0 flex flex-col items-end gap-1">
+              <p className="text-[11px] text-slate-500">{info.lastMessageTime || ' '}</p>
+              {hasUnread ? (
+                <span className="min-w-6 h-6 px-2 rounded-full bg-[color:var(--color-primary)] text-white text-xs grid place-items-center">
+                  {info.unreadCount}
+                </span>
+              ) : (
+                <span className="h-6" />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </button>
   );
 };
 
@@ -219,157 +288,137 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
 
   return (
     <div className="h-full w-full">
-      <div className="h-full max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-        <Card className="h-full overflow-hidden">
-          <div className="h-full grid sm:grid-cols-[360px_1fr]">
-            {/* LIST */}
-            <div className={cx('border-r border-[color:var(--color-border)] bg-white', mobileMode === 'chat' ? 'hidden sm:block' : 'block')}>
-              {/* Header */}
-              <div className="bg-[color:var(--color-primary)] text-white px-4 py-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-base font-semibold tracking-tight">Inbox</p>
-                    <p className="text-xs text-white/80 truncate">Patients • Recent conversations</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <IconButton className="bg-white/15 border-white/15 text-white shadow-none hover:bg-white/20">
-                      <Search className="w-4 h-4" />
-                    </IconButton>
-                    <IconButton className="bg-white/15 border-white/15 text-white shadow-none hover:bg-white/20" aria-label="New">
+      <Container className="h-full py-4 sm:py-6">
+        <Card className="h-[calc(100vh-7rem)] min-h-[640px] overflow-hidden">
+          <div className="h-full grid sm:grid-cols-[380px_1fr]">
+            {/* SIDEBAR */}
+            <aside
+              className={cx(
+                'h-full border-r border-slate-200/70 bg-white/50 backdrop-blur',
+                mobileMode === 'chat' ? 'hidden sm:block' : 'block'
+              )}
+            >
+              <div className="h-full flex flex-col">
+                {/* Sidebar header */}
+                <div className="p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-[color:var(--color-primary)] text-white shadow-sm">
+                          <Sparkles className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-900 truncate">Inbox</p>
+                          <p className="text-xs text-slate-500 truncate">Your patient conversations</p>
+                        </div>
+                      </div>
+                    </div>
+                    <IconButton aria-label="New conversation" title="New">
                       <Plus className="w-4 h-4" />
                     </IconButton>
                   </div>
+
+                  {/* Search */}
+                  <div className="mt-4">
+                    <div className="flex items-center gap-2 rounded-2xl bg-white/70 border border-slate-200/70 px-3 py-2.5">
+                      <Search className="w-4 h-4 text-slate-500" />
+                      <input
+                        className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
+                        placeholder="Search conversations"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Quick avatars */}
+                  {channels.length > 0 ? (
+                    <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
+                      {channels.slice(0, 10).map((c) => (
+                        <div key={c.channel.id} className="shrink-0">
+                          <Avatar name={c.patientName} image={c.patientImage} size={44} ring={c.unreadCount > 0} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
 
-                {/* Quick avatars */}
-                {channels.length > 0 ? (
-                  <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
-                    {channels.slice(0, 8).map((c) => (
-                      <div key={c.channel.id} className="shrink-0">
-                        <Avatar name={c.patientName} image={c.patientImage} size={44} ring />
+                {/* List */}
+                <div className="flex-1 overflow-y-auto px-3 pb-4">
+                  {channels.length === 0 ? (
+                    <div className="mt-4 rounded-3xl border border-dashed border-slate-200 bg-white/50 p-6">
+                      <div className="flex items-start gap-3">
+                        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-[color:var(--color-surface-3)] text-[color:var(--color-primary)]">
+                          <MessageCircle className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">No conversations yet</p>
+                          <p className="mt-1 text-sm text-slate-600">
+                            When a patient sends a message, you’ll see it here.
+                          </p>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-
-              {/* Search */}
-              <div className="px-4 py-3 border-b border-[color:var(--color-border)] bg-white">
-                <div className="flex items-center gap-2 rounded-2xl bg-[color:var(--color-surface-3)] px-3 py-2.5">
-                  <Search className="w-4 h-4 text-slate-500" />
-                  <input
-                    className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
-                    placeholder="Search conversations"
-                  />
-                  <button
-                    type="button"
-                    className="grid h-8 w-8 place-items-center rounded-xl text-slate-600 hover:bg-white/70"
-                    aria-label="New conversation"
-                    title="New"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {channels.map((info) => {
+                        const isActive = activeChannel?.id === info.channel.id;
+                        return (
+                          <ChatListItem
+                            key={info.channel.id}
+                            info={info}
+                            isActive={isActive}
+                            onSelect={() => selectChannel(info.channel)}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
-
-              {/* Conversations */}
-              <div className="overflow-y-auto bg-white">
-                {channels.length === 0 ? (
-                  <div className="p-6">
-                    <p className="text-sm font-semibold text-slate-900">No conversations yet</p>
-                    <p className="mt-1 text-sm text-slate-600">When a patient messages you, it’ll show up here.</p>
-                  </div>
-                ) : (
-                  <div className="p-3 sm:p-4 space-y-2">
-                    {channels.map((info) => {
-                      const isActive = activeChannel?.id === info.channel.id;
-                      const hasUnread = info.unreadCount > 0;
-
-                      return (
-                        <button
-                          key={info.channel.id}
-                          onClick={() => selectChannel(info.channel)}
-                          className={cx(
-                            'group w-full text-left flex items-center gap-3 rounded-3xl border px-3.5 py-3 transition',
-                            'border-[color:var(--color-border)] bg-white hover:bg-[color:var(--color-surface-2)] hover:border-slate-200',
-                            'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2',
-                            isActive && 'bg-[color:var(--color-surface-2)] border-slate-200 shadow-[0_10px_25px_rgba(15,23,42,0.08)]'
-                          )}
-                        >
-                          <div className="relative">
-                            <Avatar name={info.patientName} image={info.patientImage} size={46} ring={isActive || hasUnread} />
-                            {hasUnread ? (
-                              <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-[color:var(--color-primary)] ring-2 ring-white" />
-                            ) : null}
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <p className={cx('text-sm font-semibold truncate', hasUnread ? 'text-slate-900' : 'text-slate-900')}>
-                                  {info.patientName}
-                                </p>
-                                <p className={cx('mt-0.5 text-sm truncate', hasUnread ? 'text-slate-700' : 'text-slate-600')}>
-                                  {info.lastMessage}
-                                </p>
-                              </div>
-
-                              <div className="shrink-0 flex flex-col items-end gap-1">
-                                <p className="text-[11px] text-slate-500">{info.lastMessageTime || ' '}</p>
-                                {hasUnread ? (
-                                  <span className="min-w-6 h-6 px-2 rounded-full bg-[color:var(--color-primary)] text-white text-xs grid place-items-center">
-                                    {info.unreadCount}
-                                  </span>
-                                ) : (
-                                  <span className="h-6" />
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Floating + button (mobile-ish) */}
-              <button
-                className="hidden sm:hidden" // keep off; reference-only
-                aria-label="New"
-              />
-            </div>
+            </aside>
 
             {/* CHAT */}
-            <div className={cx('bg-[color:var(--color-surface-2)] flex flex-col', mobileMode === 'list' ? 'hidden sm:flex' : 'flex')}>
+            <section
+              className={cx(
+                'h-full bg-white/40 backdrop-blur flex flex-col',
+                mobileMode === 'list' ? 'hidden sm:flex' : 'flex'
+              )}
+            >
               {activeChannel ? (
                 <>
-                  {/* Header */}
-                  <div className="bg-[color:var(--color-primary)] text-white px-4 py-3">
+                  {/* Chat header */}
+                  <div className="p-4 border-b border-slate-200/70 bg-white/60 backdrop-blur">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <button
-                          className="sm:hidden grid h-10 w-10 place-items-center rounded-2xl bg-white/15"
+                          className="sm:hidden grid h-10 w-10 place-items-center rounded-2xl bg-white/70 border border-slate-200/70"
                           onClick={() => setMobileMode('list')}
                           aria-label="Back"
                         >
                           <ArrowLeft className="w-5 h-5" />
                         </button>
-                        <Avatar name={activeInfo?.patientName || 'Patient'} image={activeInfo?.patientImage} size={40} />
+
+                        <Avatar
+                          name={activeInfo?.patientName || 'Patient'}
+                          image={activeInfo?.patientImage}
+                          size={44}
+                          ring
+                        />
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold truncate">{activeInfo?.patientName || 'Patient'}</p>
-                          <p className="text-xs text-white/80">Online</p>
+                          <p className="text-sm font-semibold text-slate-900 truncate">
+                            {activeInfo?.patientName || 'Patient'}
+                          </p>
+                          <p className="text-xs text-slate-500 truncate">Typically replies within a day</p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <IconButton className="bg-white/15 border-white/15 text-white shadow-none hover:bg-white/20">
+                        <IconButton aria-label="Call">
                           <Phone className="w-4 h-4" />
                         </IconButton>
-                        <IconButton className="bg-white/15 border-white/15 text-white shadow-none hover:bg-white/20">
+                        <IconButton aria-label="Video">
                           <Video className="w-4 h-4" />
                         </IconButton>
-                        <IconButton className="bg-white/15 border-white/15 text-white shadow-none hover:bg-white/20">
+                        <IconButton aria-label="Info">
                           <Info className="w-4 h-4" />
                         </IconButton>
                       </div>
@@ -377,31 +426,38 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                   </div>
 
                   {/* Messages */}
-                  <div className="flex-1 overflow-y-auto px-4 py-4">
-                    <div className="space-y-2">
+                  <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5">
+                    <div className="space-y-3">
                       {messages.map((msg) => {
                         const isOwn = msg.user?.id === currentUser.id;
                         return (
-                          <div key={msg.id} className={cx('flex items-end gap-2', isOwn ? 'justify-end' : 'justify-start')}>
-                            {!isOwn && (
-                              <div className="mb-1">
-                                <Avatar name={msg.user?.name || 'Patient'} image={(msg.user?.image as string | undefined) || undefined} size={28} />
+                          <div
+                            key={msg.id}
+                            className={cx('flex items-end gap-2', isOwn ? 'justify-end' : 'justify-start')}
+                          >
+                            {!isOwn ? (
+                              <div className="mb-0.5">
+                                <Avatar
+                                  name={msg.user?.name || 'Patient'}
+                                  image={(msg.user?.image as string | undefined) || undefined}
+                                  size={28}
+                                />
                               </div>
-                            )}
+                            ) : null}
+
                             <div className={cx('max-w-[78%]', isOwn ? 'text-right' : 'text-left')}>
                               <div
                                 className={cx(
-                                  'inline-block px-4 py-2.5 text-sm leading-relaxed shadow-sm rounded-2xl',
+                                  'inline-block px-4 py-2.5 text-sm leading-relaxed',
+                                  'rounded-2xl shadow-sm',
                                   isOwn
                                     ? 'bg-[color:var(--color-primary)] text-white rounded-br-md'
-                                    : 'bg-white text-slate-900 rounded-bl-md'
+                                    : 'bg-white/90 text-slate-900 border border-slate-200/70 rounded-bl-md'
                                 )}
                               >
                                 {msg.text}
                               </div>
-                              <div className="mt-1 text-[11px] text-slate-500">
-                                {formatClock(msg.created_at)}
-                              </div>
+                              <div className="mt-1 text-[11px] text-slate-500">{formatClock(msg.created_at)}</div>
                             </div>
                           </div>
                         );
@@ -410,14 +466,14 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                     </div>
                   </div>
 
-                  {/* Input */}
-                  <div className="border-t border-[color:var(--color-border)] bg-white p-3">
-                    <form onSubmit={sendMessage} className="flex items-end gap-2">
-                      <div className="flex-1 rounded-2xl bg-[color:var(--color-surface-3)] px-4 py-3">
+                  {/* Composer */}
+                  <div className="p-4 border-t border-slate-200/70 bg-white/70 backdrop-blur">
+                    <form onSubmit={sendMessage} className="flex items-end gap-3">
+                      <div className="flex-1 rounded-3xl bg-white/80 border border-slate-200/70 px-4 py-3">
                         <input
                           value={messageText}
                           onChange={(e) => setMessageText(e.target.value)}
-                          placeholder="Enter message…"
+                          placeholder="Write a message…"
                           className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
                           disabled={isSending}
                         />
@@ -425,7 +481,12 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                       <button
                         type="submit"
                         disabled={!messageText.trim() || isSending}
-                        className="grid h-12 w-12 place-items-center rounded-2xl bg-[color:var(--color-primary)] text-white shadow-sm disabled:opacity-50"
+                        className={cx(
+                          'grid h-12 w-12 place-items-center rounded-3xl',
+                          'bg-[color:var(--color-primary)] text-white shadow-sm',
+                          'disabled:opacity-50',
+                          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2'
+                        )}
                         aria-label="Send"
                       >
                         <Send className="w-5 h-5" />
@@ -434,21 +495,29 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                   </div>
                 </>
               ) : (
-                <div className="h-full grid place-items-center text-sm text-slate-600">Select a conversation</div>
+                <div className="h-full grid place-items-center">
+                  <div className="text-center px-8">
+                    <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-white/70 border border-slate-200/70 text-[color:var(--color-primary)]">
+                      <MessageCircle className="w-6 h-6" />
+                    </div>
+                    <p className="mt-3 text-sm font-semibold text-slate-900">Select a conversation</p>
+                    <p className="mt-1 text-sm text-slate-600">Pick a patient from the left to start chatting.</p>
+                  </div>
+                </div>
               )}
-            </div>
+            </section>
           </div>
 
-          {/* FAB (mobile) */}
+          {/* Mobile FAB */}
           <button
-            className="sm:hidden fixed bottom-6 right-6 h-14 w-14 rounded-2xl bg-[color:var(--color-primary)] text-white shadow-lg grid place-items-center"
+            className="sm:hidden fixed bottom-6 right-6 h-14 w-14 rounded-3xl bg-[color:var(--color-primary)] text-white shadow-lg grid place-items-center"
             aria-label="New"
             title="New"
           >
             <Plus className="w-6 h-6" />
           </button>
         </Card>
-      </div>
+      </Container>
     </div>
   );
 };
