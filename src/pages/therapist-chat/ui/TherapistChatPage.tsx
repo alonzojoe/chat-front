@@ -224,69 +224,108 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
           <div className="h-full grid sm:grid-cols-[360px_1fr]">
             {/* LIST */}
             <div className={cx('border-r border-[color:var(--color-border)] bg-white', mobileMode === 'chat' ? 'hidden sm:block' : 'block')}>
-              {/* Purple top */}
+              {/* Header */}
               <div className="bg-[color:var(--color-primary)] text-white px-4 py-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-base font-semibold">Chat</p>
-                    <p className="text-xs text-white/80">Activities</p>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-base font-semibold tracking-tight">Inbox</p>
+                    <p className="text-xs text-white/80 truncate">Patients • Recent conversations</p>
                   </div>
-                  <IconButton className="bg-white/15 border-white/15 text-white shadow-none hover:bg-white/20">
-                    <Search className="w-4 h-4" />
-                  </IconButton>
+                  <div className="flex items-center gap-2">
+                    <IconButton className="bg-white/15 border-white/15 text-white shadow-none hover:bg-white/20">
+                      <Search className="w-4 h-4" />
+                    </IconButton>
+                    <IconButton className="bg-white/15 border-white/15 text-white shadow-none hover:bg-white/20" aria-label="New">
+                      <Plus className="w-4 h-4" />
+                    </IconButton>
+                  </div>
                 </div>
 
-                {/* Activities row */}
-                <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
-                  {channels.slice(0, 6).map((c) => (
-                    <div key={c.channel.id} className="shrink-0">
-                      <Avatar name={c.patientName} image={c.patientImage} size={44} ring />
-                    </div>
-                  ))}
-                </div>
+                {/* Quick avatars */}
+                {channels.length > 0 ? (
+                  <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
+                    {channels.slice(0, 8).map((c) => (
+                      <div key={c.channel.id} className="shrink-0">
+                        <Avatar name={c.patientName} image={c.patientImage} size={44} ring />
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
 
               {/* Search */}
               <div className="px-4 py-3 border-b border-[color:var(--color-border)] bg-white">
-                <div className="flex items-center gap-2 rounded-2xl bg-[color:var(--color-surface-3)] px-3 py-2">
+                <div className="flex items-center gap-2 rounded-2xl bg-[color:var(--color-surface-3)] px-3 py-2.5">
                   <Search className="w-4 h-4 text-slate-500" />
                   <input
                     className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
-                    placeholder="Search"
+                    placeholder="Search conversations"
                   />
+                  <button
+                    type="button"
+                    className="grid h-8 w-8 place-items-center rounded-xl text-slate-600 hover:bg-white/70"
+                    aria-label="New conversation"
+                    title="New"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
               {/* Conversations */}
-              <div className="overflow-y-auto">
+              <div className="overflow-y-auto bg-white">
                 {channels.length === 0 ? (
-                  <div className="p-6 text-sm text-slate-600">No conversations yet.</div>
+                  <div className="p-6">
+                    <p className="text-sm font-semibold text-slate-900">No conversations yet</p>
+                    <p className="mt-1 text-sm text-slate-600">When a patient messages you, it’ll show up here.</p>
+                  </div>
                 ) : (
-                  <div className="divide-y divide-[color:var(--color-border)]">
+                  <div className="p-3 sm:p-4 space-y-2">
                     {channels.map((info) => {
                       const isActive = activeChannel?.id === info.channel.id;
+                      const hasUnread = info.unreadCount > 0;
+
                       return (
                         <button
                           key={info.channel.id}
                           onClick={() => selectChannel(info.channel)}
                           className={cx(
-                            'w-full px-4 py-4 text-left flex items-center gap-3 hover:bg-[color:var(--color-surface-2)] transition',
-                            isActive && 'bg-[color:var(--color-surface-2)]'
+                            'group w-full text-left flex items-center gap-3 rounded-3xl border px-3.5 py-3 transition',
+                            'border-[color:var(--color-border)] bg-white hover:bg-[color:var(--color-surface-2)] hover:border-slate-200',
+                            'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2',
+                            isActive && 'bg-[color:var(--color-surface-2)] border-slate-200 shadow-[0_10px_25px_rgba(15,23,42,0.08)]'
                           )}
                         >
-                          <Avatar name={info.patientName} image={info.patientImage} size={44} />
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="text-sm font-semibold text-slate-900 truncate">{info.patientName}</p>
-                              <p className="text-xs text-slate-500 shrink-0">{info.lastMessageTime}</p>
-                            </div>
-                            <p className="text-sm text-slate-600 truncate">{info.lastMessage}</p>
+                          <div className="relative">
+                            <Avatar name={info.patientName} image={info.patientImage} size={46} ring={isActive || hasUnread} />
+                            {hasUnread ? (
+                              <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-[color:var(--color-primary)] ring-2 ring-white" />
+                            ) : null}
                           </div>
-                          {info.unreadCount > 0 ? (
-                            <span className="ml-2 shrink-0 min-w-6 h-6 px-2 rounded-full bg-[color:var(--color-primary)] text-white text-xs grid place-items-center">
-                              {info.unreadCount}
-                            </span>
-                          ) : null}
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className={cx('text-sm font-semibold truncate', hasUnread ? 'text-slate-900' : 'text-slate-900')}>
+                                  {info.patientName}
+                                </p>
+                                <p className={cx('mt-0.5 text-sm truncate', hasUnread ? 'text-slate-700' : 'text-slate-600')}>
+                                  {info.lastMessage}
+                                </p>
+                              </div>
+
+                              <div className="shrink-0 flex flex-col items-end gap-1">
+                                <p className="text-[11px] text-slate-500">{info.lastMessageTime || ' '}</p>
+                                {hasUnread ? (
+                                  <span className="min-w-6 h-6 px-2 rounded-full bg-[color:var(--color-primary)] text-white text-xs grid place-items-center">
+                                    {info.unreadCount}
+                                  </span>
+                                ) : (
+                                  <span className="h-6" />
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         </button>
                       );
                     })}
