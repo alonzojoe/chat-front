@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StreamChat, Channel as StreamChannel, Event, MessageResponse } from 'stream-chat';
 import type { User } from '../../../shared/types/chat';
+import { fetchStreamToken } from '../../../shared/api/streamToken';
 import { getStreamApiKey } from '../../../shared/config/stream';
 
 const API_KEY = getStreamApiKey();
@@ -34,7 +35,6 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
     const initChat = async () => {
       try {
         const chatClient = StreamChat.getInstance(API_KEY);
-        const { fetchStreamToken } = await import('../../../shared/api/streamToken');
         const token = await fetchStreamToken(currentUser.id);
 
         await chatClient.connectUser(

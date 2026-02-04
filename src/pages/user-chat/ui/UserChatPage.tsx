@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StreamChat, Channel as StreamChannel, Event, MessageResponse } from 'stream-chat';
 import { Lock } from 'lucide-react';
+import { fetchStreamToken } from '../../../shared/api/streamToken';
 import type { User } from '../../../shared/types/chat';
 import { getStreamApiKey } from '../../../shared/config/stream';
 
@@ -33,7 +34,6 @@ export const UserChatPage: React.FC<UserChatProps> = ({
     const initChat = async () => {
       try {
         const chatClient = StreamChat.getInstance(API_KEY);
-        const { fetchStreamToken } = await import('../../../shared/api/streamToken');
         const token = await fetchStreamToken(currentUser.id);
 
         await chatClient.connectUser(
