@@ -227,7 +227,7 @@ export const UserChatPage: React.FC<UserChatProps> = ({
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] w-full bg-neutral-50">
-      <div className="h-[calc(100vh-3.5rem)] w-full max-w-3xl mx-auto flex flex-col bg-white sm:border-x sm:border-neutral-200 sm:shadow-sm">
+      <div className="h-[calc(100vh-3.5rem)] w-full max-w-3xl mx-auto flex flex-col bg-white sm:rounded-2xl sm:my-6 sm:border sm:border-neutral-200 sm:shadow-sm overflow-hidden">
         {/* Header */}
         <div className="safe-top sticky top-14 z-10 bg-white border-b border-neutral-200">
           <div className="px-4 py-3 flex items-center justify-between">

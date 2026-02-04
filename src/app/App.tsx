@@ -47,10 +47,10 @@ function App() {
   // Login Screen
   if (!currentUser) {
     return (
-      <div className="min-h-screen">
-        <div className="container mx-auto px-4 py-14">
+      <div className="min-h-screen w-full bg-neutral-50">
+        <div className="max-w-6xl mx-auto px-4 py-10 sm:py-14">
           {/* Header */}
-          <div className="text-center mb-10">
+          <div className="text-center mb-8 sm:mb-10">
             <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 shadow-sm">
               <span className="h-2 w-2 rounded-full bg-neutral-900" />
               <span className="text-sm font-medium text-neutral-700">Secure therapy messaging</span>
@@ -64,7 +64,7 @@ function App() {
           </div>
 
           {/* Demo Login Cards */}
-          <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-6">
+          <div className="max-w-4xl mx-auto grid gap-5 lg:grid-cols-2">
             {/* Patient Login Card */}
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-neutral-200">
               <div className="px-7 py-6 border-b border-neutral-200 bg-white">
@@ -84,13 +84,11 @@ function App() {
                       alt={DEMO_USERS.patient1.name}
                       className="w-16 h-16 rounded-full"
                     />
-                    <div className="text-left flex-1">
-                      <h3 className="font-semibold text-gray-800 group-hover:text-blue-600">
-                        {DEMO_USERS.patient1.name}
-                      </h3>
-                      <p className="text-sm text-gray-500">{DEMO_USERS.patient1.email}</p>
+                    <div className="text-left flex-1 min-w-0">
+                      <h3 className="font-semibold text-neutral-900 truncate">{DEMO_USERS.patient1.name}</h3>
+                      <p className="text-sm text-neutral-500 truncate">{DEMO_USERS.patient1.email}</p>
                     </div>
-                    <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-blue-600" />
+                    <ChevronRight className="w-6 h-6 text-neutral-400 group-hover:text-neutral-700" />
                   </button>
 
                   {/* Patient 2 */}
@@ -103,13 +101,11 @@ function App() {
                       alt={DEMO_USERS.patient2.name}
                       className="w-16 h-16 rounded-full"
                     />
-                    <div className="text-left flex-1">
-                      <h3 className="font-semibold text-gray-800 group-hover:text-blue-600">
-                        {DEMO_USERS.patient2.name}
-                      </h3>
-                      <p className="text-sm text-gray-500">{DEMO_USERS.patient2.email}</p>
+                    <div className="text-left flex-1 min-w-0">
+                      <h3 className="font-semibold text-neutral-900 truncate">{DEMO_USERS.patient2.name}</h3>
+                      <p className="text-sm text-neutral-500 truncate">{DEMO_USERS.patient2.email}</p>
                     </div>
-                    <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-blue-600" />
+                    <ChevronRight className="w-6 h-6 text-neutral-400 group-hover:text-neutral-700" />
                   </button>
                 </div>
 
@@ -148,14 +144,12 @@ function App() {
                       alt={DEMO_USERS.therapist.name}
                       className="w-16 h-16 rounded-full"
                     />
-                    <div className="text-left flex-1">
-                      <h3 className="font-semibold text-gray-800 group-hover:text-purple-600">
-                        {DEMO_USERS.therapist.name}
-                      </h3>
-                      <p className="text-sm text-gray-500">{DEMO_USERS.therapist.email}</p>
-                      <p className="text-xs text-gray-400 mt-1">Licensed Therapist</p>
+                    <div className="text-left flex-1 min-w-0">
+                      <h3 className="font-semibold text-neutral-900 truncate">{DEMO_USERS.therapist.name}</h3>
+                      <p className="text-sm text-neutral-500 truncate">{DEMO_USERS.therapist.email}</p>
+                      <p className="text-xs text-neutral-500 mt-1">Licensed Therapist</p>
                     </div>
-                    <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-purple-600" />
+                    <ChevronRight className="w-6 h-6 text-neutral-400 group-hover:text-neutral-700" />
                   </button>
                 </div>
 
@@ -204,10 +198,12 @@ function App() {
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Fixed top navbar */}
-      <header className="fixed top-0 inset-x-0 z-50 h-14 bg-white border-b border-neutral-200">
+      <header className="fixed top-0 inset-x-0 z-50 h-14 bg-white/95 backdrop-blur border-b border-neutral-200">
         <div className="h-full max-w-6xl mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-9 w-9 rounded-full bg-neutral-900 text-white grid place-items-center text-sm font-semibold">TC</div>
+            <div className="h-9 w-9 rounded-full bg-neutral-900 text-white grid place-items-center text-sm font-semibold">
+              TC
+            </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-neutral-900 truncate">Therapy Chat</p>
               <p className="text-xs text-neutral-500 truncate">
@@ -218,10 +214,10 @@ function App() {
 
           <button
             onClick={handleLogout}
-            className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-neutral-700 border border-neutral-200 hover:bg-neutral-50 transition"
+            className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-4 py-2 text-white shadow-sm hover:bg-neutral-800 transition"
           >
             <LogOut className="w-4 h-4" />
-            <span className="text-sm font-medium">Logout</span>
+            <span className="text-sm font-semibold">Logout</span>
           </button>
         </div>
       </header>
