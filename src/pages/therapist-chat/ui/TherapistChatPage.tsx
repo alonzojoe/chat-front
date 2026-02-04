@@ -242,11 +242,11 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
   }
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)] w-full bg-neutral-50">
-      <div className="h-[calc(100vh-3.5rem)] w-full max-w-6xl mx-auto bg-white flex sm:rounded-2xl sm:my-6 sm:border sm:border-neutral-200 sm:shadow-sm overflow-hidden">
+    <div className="h-full w-full bg-neutral-50">
+      <div className="h-full w-full max-w-6xl mx-auto bg-white flex sm:rounded-2xl sm:my-6 sm:border sm:border-neutral-200 sm:shadow-sm overflow-hidden">
         {/* LIST */}
         <div className={`${mobileMode === 'chat' ? 'hidden' : 'flex'} sm:flex flex-col w-full sm:w-[360px] border-r border-neutral-200`}>
-          <div className="safe-top sticky top-14 z-10 bg-white border-b border-neutral-200">
+          <div className="safe-top sticky top-0 z-10 bg-white border-b border-neutral-200">
             <div className="px-4 py-3">
               <p className="text-lg font-semibold text-neutral-900">Messages</p>
               <div className="mt-3 flex items-center gap-2 rounded-full border border-neutral-200 px-3 py-2">
@@ -297,7 +297,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
         <div className={`${mobileMode === 'list' ? 'hidden' : 'flex'} sm:flex flex-1 flex-col`}>
           {activeChannel ? (
             <>
-              <div className="safe-top sticky top-14 z-10 bg-white border-b border-neutral-200">
+              <div className="safe-top sticky top-0 z-10 bg-white border-b border-neutral-200">
                 <div className="px-4 py-3 flex items-center gap-3">
                   <button
                     className="sm:hidden h-9 w-9 rounded-full hover:bg-neutral-50 grid place-items-center"
