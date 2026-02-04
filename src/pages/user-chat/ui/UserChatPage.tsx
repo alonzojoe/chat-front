@@ -173,26 +173,27 @@ export const UserChatPage: React.FC<UserChatProps> = ({
   }
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
-        <div className="max-w-4xl mx-auto">
+      <div className="sticky top-0 z-10 border-b border-purple-100 bg-white/70 backdrop-blur">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+              <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white grid place-items-center font-semibold shadow-sm">
                 {therapistName.charAt(0)}
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-800">{therapistName}</h2>
-                <p className="text-sm text-gray-500">Therapist</p>
+                <h2 className="text-base sm:text-lg font-semibold text-slate-900 leading-tight">{therapistName}</h2>
+                <p className="text-xs sm:text-sm text-slate-500">Your therapist</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500" />
+
+            <div className="flex items-center gap-2 rounded-full border border-purple-100 bg-white/60 px-3 py-1.5">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
               </span>
-              <span className="text-sm text-gray-600">Online</span>
+              <span className="text-xs font-medium text-slate-700">Online</span>
             </div>
           </div>
         </div>
@@ -209,8 +210,8 @@ export const UserChatPage: React.FC<UserChatProps> = ({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-4">
-        <div className="max-w-4xl mx-auto space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5">
+        <div className="max-w-4xl mx-auto space-y-3">
           {messages.map((msg) => (
             <MessageBubble
               key={msg.id}
@@ -234,23 +235,25 @@ export const UserChatPage: React.FC<UserChatProps> = ({
       </div>
 
       {/* Input */}
-      <div className="bg-white border-t border-gray-200 px-6 py-4">
+      <div className="sticky bottom-0 border-t border-purple-100 bg-white/70 backdrop-blur px-4 sm:px-6 py-4">
         <div className="max-w-4xl mx-auto">
-          <form onSubmit={sendMessage} className="flex gap-3">
-            <input
-              type="text"
-              value={messageText}
-              onChange={(e) => handleTyping(e.target.value)}
-              placeholder={`Message ${therapistName}...`}
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled={isSending}
-            />
+          <form onSubmit={sendMessage} className="flex items-end gap-3">
+            <div className="flex-1">
+              <input
+                type="text"
+                value={messageText}
+                onChange={(e) => handleTyping(e.target.value)}
+                placeholder={`Message ${therapistName}...`}
+                className="w-full px-4 py-3 rounded-2xl border border-purple-100 bg-white/80 shadow-sm focus:outline-none focus:ring-4 focus:ring-purple-200/50 focus:border-purple-200"
+                disabled={isSending}
+              />
+            </div>
             <button
               type="submit"
               disabled={!messageText.trim() || isSending}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white font-semibold shadow-sm hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
-              {isSending ? 'Sending...' : 'Send'}
+              {isSending ? 'Sending…' : 'Send'}
             </button>
           </form>
         </div>
@@ -278,18 +281,14 @@ const MessageBubble: React.FC<{
           <p className="text-xs text-gray-500 mb-1 ml-3">{userName}</p>
         )}
         <div
-          className={`px-4 py-3 rounded-lg ${
+          className={`px-4 py-3 rounded-2xl shadow-sm ${
             isOwn
-              ? 'bg-blue-600 text-white rounded-br-none'
-              : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none'
+              ? 'bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white'
+              : 'bg-white/80 backdrop-blur border border-purple-100 text-slate-900'
           }`}
         >
-          <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
-          <p
-            className={`text-xs mt-1 ${
-              isOwn ? 'text-blue-100' : 'text-gray-400'
-            }`}
-          >
+          <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.text}</p>
+          <p className={`text-[11px] mt-1 ${isOwn ? 'text-white/80' : 'text-slate-400'}`}>
             {formatTime(message.created_at)}
           </p>
         </div>

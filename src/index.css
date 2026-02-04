@@ -3,12 +3,18 @@
 /* Custom theme configuration for Tailwind v4 */
 @theme {
   --font-sans: 'Inter', system-ui, sans-serif;
-  
-  /* Custom colors */
-  --color-primary: #3b82f6;
-  --color-primary-dark: #2563eb;
-  --color-secondary: #8b5cf6;
-  --color-secondary-dark: #7c3aed;
+
+  /* Brand (purple-forward, modern) */
+  --color-primary: #7c3aed;        /* violet-600 */
+  --color-primary-dark: #6d28d9;   /* violet-700 */
+  --color-secondary: #a855f7;      /* purple-500 */
+  --color-secondary-dark: #9333ea; /* purple-600 */
+
+  --color-surface: #ffffff;
+  --color-surface-2: #faf5ff;      /* purple-50 */
+  --color-border: #e9d5ff;         /* purple-200 */
+  --color-text: #0f172a;           /* slate-900 */
+  --color-muted: #64748b;          /* slate-500 */
 }
 
 /* Base styles */
@@ -22,6 +28,10 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: var(--color-text);
+  background: radial-gradient(1200px 600px at 20% -10%, rgba(168, 85, 247, 0.18), transparent 60%),
+    radial-gradient(900px 500px at 90% 0%, rgba(124, 58, 237, 0.14), transparent 55%),
+    linear-gradient(to bottom, #ffffff, #faf5ff);
 }
 
 /* Custom scrollbar */
@@ -31,15 +41,15 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: rgba(233, 213, 255, 0.35); /* purple-200 */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
+  background: rgba(124, 58, 237, 0.45); /* violet-600 */
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: rgba(124, 58, 237, 0.65);
 }
 
