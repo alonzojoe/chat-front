@@ -1,16 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StreamChat, Channel as StreamChannel, Event, MessageResponse } from 'stream-chat';
-import {
-  ArrowLeft,
-  Search,
-  Plus,
-  Send,
-  Phone,
-  Video,
-  Info,
-  Sparkles,
-  MessageCircle,
-} from 'lucide-react';
+import { ArrowLeft, Search, Plus, Send, Phone, Video, Info } from 'lucide-react';
 
 import type { User } from '../../../shared/types/chat';
 import { getStreamApiKey } from '../../../shared/config/stream';
@@ -55,9 +45,7 @@ const Avatar: React.FC<{ name: string; image?: string; size?: number; ring?: boo
     <div
       className={cx(
         'shrink-0 rounded-full bg-slate-200 text-slate-700 grid place-items-center overflow-hidden',
-        ring
-          ? 'ring-2 ring-[color:var(--color-primary)] ring-offset-2 ring-offset-white'
-          : 'ring-1 ring-white/70'
+        ring ? 'ring-2 ring-[color:var(--color-primary)] ring-offset-2 ring-offset-white' : 'ring-1 ring-slate-200'
       )}
       style={{ width: size, height: size }}
       aria-label={name}
@@ -74,28 +62,25 @@ const Avatar: React.FC<{ name: string; image?: string; size?: number; ring?: boo
 
 const ChatListItem: React.FC<{
   info: ChannelInfo;
-  isActive: boolean;
-  onSelect: () => void;
-}> = ({ info, isActive, onSelect }) => {
+  active: boolean;
+  onClick: () => void;
+}> = ({ info, active, onClick }) => {
   const hasUnread = info.unreadCount > 0;
 
   return (
     <button
-      onClick={onSelect}
+      onClick={onClick}
       className={cx(
-        'w-full text-left',
-        'rounded-3xl border transition',
-        'px-3.5 py-3',
-        'bg-white/70 backdrop-blur border-slate-200/70',
-        'hover:bg-white hover:border-slate-200',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2',
-        isActive && 'bg-white border-slate-200 shadow-[0_12px_35px_rgba(15,23,42,0.10)]'
+        'w-full text-left rounded-xl border px-3.5 py-3 transition',
+        'border-[color:var(--color-border)] bg-white',
+        'hover:bg-[color:var(--color-surface-2)]',
+        active && 'bg-[color:var(--color-surface-2)]'
       )}
-      aria-current={isActive ? 'page' : undefined}
+      aria-current={active ? 'page' : undefined}
     >
       <div className="flex items-center gap-3">
         <div className="relative">
-          <Avatar name={info.patientName} image={info.patientImage} size={46} ring={isActive || hasUnread} />
+          <Avatar name={info.patientName} image={info.patientImage} size={44} ring={active || hasUnread} />
           {hasUnread ? (
             <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-[color:var(--color-primary)] ring-2 ring-white" />
           ) : null}
@@ -104,9 +89,7 @@ const ChatListItem: React.FC<{
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className={cx('text-sm font-semibold truncate', hasUnread ? 'text-slate-900' : 'text-slate-900')}>
-                {info.patientName}
-              </p>
+              <p className="text-sm font-semibold text-slate-900 truncate">{info.patientName}</p>
               <p className={cx('mt-0.5 text-sm truncate', hasUnread ? 'text-slate-700' : 'text-slate-600')}>
                 {info.lastMessage}
               </p>
@@ -289,125 +272,81 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
   return (
     <div className="h-full w-full">
       <Container className="h-full py-4 sm:py-6">
-        <Card className="h-[calc(100vh-7rem)] min-h-[640px] overflow-hidden">
-          <div className="h-full grid sm:grid-cols-[380px_1fr]">
-            {/* SIDEBAR */}
+        <Card className="h-[calc(100vh-88px)] min-h-[640px] overflow-hidden">
+          <div className="h-full grid sm:grid-cols-[360px_1fr]">
+            {/* LIST */}
             <aside
               className={cx(
-                'h-full border-r border-slate-200/70 bg-white/50 backdrop-blur',
+                'h-full border-r border-[color:var(--color-border)] bg-white',
                 mobileMode === 'chat' ? 'hidden sm:block' : 'block'
               )}
             >
               <div className="h-full flex flex-col">
-                {/* Sidebar header */}
-                <div className="p-4">
+                <div className="p-4 border-b border-[color:var(--color-border)]">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-[color:var(--color-primary)] text-white shadow-sm">
-                          <Sparkles className="w-5 h-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-slate-900 truncate">Inbox</p>
-                          <p className="text-xs text-slate-500 truncate">Your patient conversations</p>
-                        </div>
-                      </div>
+                      <p className="text-sm font-semibold text-slate-900 truncate">Inbox</p>
+                      <p className="text-xs text-slate-500 truncate">All patient conversations</p>
                     </div>
                     <IconButton aria-label="New conversation" title="New">
                       <Plus className="w-4 h-4" />
                     </IconButton>
                   </div>
 
-                  {/* Search */}
-                  <div className="mt-4">
-                    <div className="flex items-center gap-2 rounded-2xl bg-white/70 border border-slate-200/70 px-3 py-2.5">
-                      <Search className="w-4 h-4 text-slate-500" />
-                      <input
-                        className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
-                        placeholder="Search conversations"
-                      />
-                    </div>
+                  <div className="mt-3 flex items-center gap-2 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-3 py-2.5">
+                    <Search className="w-4 h-4 text-slate-500" />
+                    <input
+                      className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
+                      placeholder="Search"
+                    />
                   </div>
-
-                  {/* Quick avatars */}
-                  {channels.length > 0 ? (
-                    <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
-                      {channels.slice(0, 10).map((c) => (
-                        <div key={c.channel.id} className="shrink-0">
-                          <Avatar name={c.patientName} image={c.patientImage} size={44} ring={c.unreadCount > 0} />
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
                 </div>
 
-                {/* List */}
-                <div className="flex-1 overflow-y-auto px-3 pb-4">
+                <div className="flex-1 overflow-y-auto p-3 space-y-2">
                   {channels.length === 0 ? (
-                    <div className="mt-4 rounded-3xl border border-dashed border-slate-200 bg-white/50 p-6">
-                      <div className="flex items-start gap-3">
-                        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-[color:var(--color-surface-3)] text-[color:var(--color-primary)]">
-                          <MessageCircle className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-slate-900">No conversations yet</p>
-                          <p className="mt-1 text-sm text-slate-600">
-                            When a patient sends a message, you’ll see it here.
-                          </p>
-                        </div>
-                      </div>
+                    <div className="rounded-xl border border-dashed border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] p-5">
+                      <p className="text-sm font-semibold text-slate-900">No conversations yet</p>
+                      <p className="mt-1 text-sm text-slate-600">
+                        When a patient sends a message, it will appear here.
+                      </p>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      {channels.map((info) => {
-                        const isActive = activeChannel?.id === info.channel.id;
-                        return (
-                          <ChatListItem
-                            key={info.channel.id}
-                            info={info}
-                            isActive={isActive}
-                            onSelect={() => selectChannel(info.channel)}
-                          />
-                        );
-                      })}
-                    </div>
+                    channels.map((info) => (
+                      <ChatListItem
+                        key={info.channel.id}
+                        info={info}
+                        active={activeChannel?.id === info.channel.id}
+                        onClick={() => selectChannel(info.channel)}
+                      />
+                    ))
                   )}
                 </div>
               </div>
             </aside>
 
             {/* CHAT */}
-            <section
-              className={cx(
-                'h-full bg-[color:var(--color-surface-2)] flex flex-col',
-                mobileMode === 'list' ? 'hidden sm:flex' : 'flex'
-              )}
-            >
+            <section className={cx('h-full flex flex-col bg-[color:var(--color-bg)]', mobileMode === 'list' ? 'hidden sm:flex' : 'flex')}>
               {activeChannel ? (
                 <>
-                  {/* Chat header */}
-                  <div className="p-4 border-b border-slate-200 bg-white">
+                  <div className="p-4 bg-white border-b border-[color:var(--color-border)]">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <button
-                          className="sm:hidden grid h-10 w-10 place-items-center rounded-2xl bg-white/70 border border-slate-200/70"
+                          className="sm:hidden grid h-10 w-10 place-items-center rounded-xl border border-[color:var(--color-border)] bg-white"
                           onClick={() => setMobileMode('list')}
                           aria-label="Back"
                         >
                           <ArrowLeft className="w-5 h-5" />
                         </button>
-
                         <Avatar
                           name={activeInfo?.patientName || 'Patient'}
                           image={activeInfo?.patientImage}
-                          size={44}
+                          size={42}
                           ring
                         />
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-slate-900 truncate">
-                            {activeInfo?.patientName || 'Patient'}
-                          </p>
-                          <p className="text-xs text-slate-500 truncate">Typically replies within a day</p>
+                          <p className="text-sm font-semibold text-slate-900 truncate">{activeInfo?.patientName || 'Patient'}</p>
+                          <p className="text-xs text-slate-500 truncate">Online</p>
                         </div>
                       </div>
 
@@ -425,34 +364,27 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                     </div>
                   </div>
 
-                  {/* Messages */}
                   <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
                     <div className="space-y-3">
                       {messages.map((msg) => {
                         const isOwn = msg.user?.id === currentUser.id;
                         return (
-                          <div
-                            key={msg.id}
-                            className={cx('flex items-end gap-2', isOwn ? 'justify-end' : 'justify-start')}
-                          >
+                          <div key={msg.id} className={cx('flex items-end gap-2', isOwn ? 'justify-end' : 'justify-start')}>
                             {!isOwn ? (
-                              <div className="mb-0.5">
-                                <Avatar
-                                  name={msg.user?.name || 'Patient'}
-                                  image={(msg.user?.image as string | undefined) || undefined}
-                                  size={28}
-                                />
-                              </div>
+                              <Avatar
+                                name={msg.user?.name || 'Patient'}
+                                image={(msg.user?.image as string | undefined) || undefined}
+                                size={28}
+                              />
                             ) : null}
 
                             <div className={cx('max-w-[78%]', isOwn ? 'text-right' : 'text-left')}>
                               <div
                                 className={cx(
-                                  'inline-block px-4 py-2.5 text-sm leading-relaxed',
-                                  'rounded-2xl shadow-sm',
+                                  'inline-block rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
                                   isOwn
-                                    ? 'bg-[color:var(--color-primary)] text-white rounded-br-md'
-                                    : 'bg-white/90 text-slate-900 border border-slate-200/70 rounded-bl-md'
+                                    ? 'bg-[color:var(--color-primary)] text-white'
+                                    : 'bg-white border border-[color:var(--color-border)] text-slate-900'
                                 )}
                               >
                                 {msg.text}
@@ -466,30 +398,26 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                     </div>
                   </div>
 
-                  {/* Composer */}
-                  <div className="p-4 border-t border-slate-200 bg-white">
+                  <div className="p-4 bg-white border-t border-[color:var(--color-border)]">
                     <form onSubmit={sendMessage} className="flex items-end gap-3">
-                      <div className="flex-1">
-                        <div className="rounded-3xl bg-slate-50 border border-slate-200 px-4 py-3">
-                          <input
-                            value={messageText}
-                            onChange={(e) => setMessageText(e.target.value)}
-                            placeholder="Message…"
-                            className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
-                            disabled={isSending}
-                          />
-                        </div>
+                      <div className="flex-1 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-4 py-3">
+                        <input
+                          value={messageText}
+                          onChange={(e) => setMessageText(e.target.value)}
+                          placeholder="Message…"
+                          className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
+                          disabled={isSending}
+                        />
                       </div>
 
                       <button
                         type="submit"
                         disabled={!messageText.trim() || isSending}
                         className={cx(
-                          'grid h-12 w-12 place-items-center rounded-2xl',
+                          'grid h-12 w-12 place-items-center rounded-xl',
                           'bg-[color:var(--color-primary)] text-white shadow-sm',
-                          'hover:brightness-95 active:brightness-90',
-                          'disabled:opacity-50',
-                          'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2'
+                          'hover:bg-[color:var(--color-primary-dark)] active:translate-y-[0.5px]',
+                          'disabled:opacity-50'
                         )}
                         aria-label="Send"
                       >
@@ -499,27 +427,10 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                   </div>
                 </>
               ) : (
-                <div className="h-full grid place-items-center">
-                  <div className="text-center px-8">
-                    <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-white/70 border border-slate-200/70 text-[color:var(--color-primary)]">
-                      <MessageCircle className="w-6 h-6" />
-                    </div>
-                    <p className="mt-3 text-sm font-semibold text-slate-900">Select a conversation</p>
-                    <p className="mt-1 text-sm text-slate-600">Pick a patient from the left to start chatting.</p>
-                  </div>
-                </div>
+                <div className="h-full grid place-items-center text-sm text-slate-600">Select a conversation</div>
               )}
             </section>
           </div>
-
-          {/* Mobile FAB */}
-          <button
-            className="sm:hidden fixed bottom-6 right-6 h-14 w-14 rounded-3xl bg-[color:var(--color-primary)] text-white shadow-lg grid place-items-center"
-            aria-label="New"
-            title="New"
-          >
-            <Plus className="w-6 h-6" />
-          </button>
         </Card>
       </Container>
     </div>
