@@ -226,10 +226,10 @@ export const UserChatPage: React.FC<UserChatProps> = ({
   }
 
   return (
-    <div className="h-screen w-full">
-      <div className="h-full w-full max-w-3xl mx-auto flex flex-col border-x border-neutral-200 bg-white">
+    <div className="min-h-[calc(100vh-3.5rem)] w-full bg-neutral-50">
+      <div className="h-[calc(100vh-3.5rem)] w-full max-w-3xl mx-auto flex flex-col bg-white sm:border-x sm:border-neutral-200 sm:shadow-sm">
         {/* Header */}
-        <div className="safe-top sticky top-0 z-10 bg-white border-b border-neutral-200">
+        <div className="safe-top sticky top-14 z-10 bg-white border-b border-neutral-200">
           <div className="px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Avatar name={(otherMember?.name as string) || therapistName} image={(otherMember?.image as string | undefined) || undefined} size={40} />

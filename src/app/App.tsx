@@ -202,25 +202,41 @@ function App() {
 
   // Render appropriate chat interface
   return (
-    <div className="relative">
-      {/* Logout Button */}
-      <button
-        onClick={handleLogout}
-        className="absolute top-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-neutral-700 shadow-sm border border-neutral-200 hover:bg-neutral-50 transition"
-      >
-        <LogOut className="w-4 h-4" />
-        <span className="text-sm font-medium">Logout</span>
-      </button>
+    <div className="min-h-screen bg-neutral-50">
+      {/* Fixed top navbar */}
+      <header className="fixed top-0 inset-x-0 z-50 h-14 bg-white border-b border-neutral-200">
+        <div className="h-full max-w-6xl mx-auto px-4 flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-9 w-9 rounded-full bg-neutral-900 text-white grid place-items-center text-sm font-semibold">TC</div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-neutral-900 truncate">Therapy Chat</p>
+              <p className="text-xs text-neutral-500 truncate">
+                {currentUser.name} · {viewMode === 'user' ? 'Patient' : 'Therapist'}
+              </p>
+            </div>
+          </div>
 
-      {viewMode === 'user' ? (
-        <UserChatPage
-          currentUser={currentUser}
-          therapistId={DEMO_USERS.therapist.id}
-          therapistName={DEMO_USERS.therapist.name}
-        />
-      ) : (
-        <TherapistChatPage currentUser={currentUser} />
-      )}
+          <button
+            onClick={handleLogout}
+            className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-neutral-700 border border-neutral-200 hover:bg-neutral-50 transition"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-sm font-medium">Logout</span>
+          </button>
+        </div>
+      </header>
+
+      <main className="pt-14">
+        {viewMode === 'user' ? (
+          <UserChatPage
+            currentUser={currentUser}
+            therapistId={DEMO_USERS.therapist.id}
+            therapistName={DEMO_USERS.therapist.name}
+          />
+        ) : (
+          <TherapistChatPage currentUser={currentUser} />
+        )}
+      </main>
     </div>
   );
 }
