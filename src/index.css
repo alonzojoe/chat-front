@@ -4,17 +4,18 @@
 @theme {
   --font-sans: 'Inter', system-ui, sans-serif;
 
-  /* Monochrome (mobile-first, messenger-ish) */
-  --color-primary: #111111;
-  --color-primary-dark: #000000;
-  --color-secondary: #111111;
-  --color-secondary-dark: #000000;
+  /* Purple chat theme (matches reference) */
+  --color-primary: #6d5efc;
+  --color-primary-2: #7b5cff;
+  --color-primary-dark: #4c3df0;
 
   --color-surface: #ffffff;
-  --color-surface-2: #fafafa;
-  --color-border: #e5e5e5;
-  --color-text: #111111;
-  --color-muted: #737373;
+  --color-surface-2: #f6f5ff;
+  --color-surface-3: #f0efff;
+  --color-border: rgba(17, 24, 39, 0.08);
+
+  --color-text: #0f172a;
+  --color-muted: #64748b;
 }
 
 /* Base styles */
@@ -29,7 +30,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--color-text);
-  background: #ffffff;
+  background: radial-gradient(1200px 600px at 15% -10%, rgba(109, 94, 252, 0.18), transparent 60%),
+    radial-gradient(900px 500px at 95% 0%, rgba(123, 92, 255, 0.12), transparent 55%),
+    linear-gradient(to bottom, #ffffff, var(--color-surface-2));
 }
 
 /* Small helpers */
@@ -48,14 +51,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f5f5f5;
+  background: rgba(109, 94, 252, 0.08);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d4;
+  background: rgba(109, 94, 252, 0.35);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a3a3a3;
+  background: rgba(109, 94, 252, 0.55);
 }
