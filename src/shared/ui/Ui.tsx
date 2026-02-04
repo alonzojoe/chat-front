@@ -12,8 +12,8 @@ export const Container: React.FC<React.PropsWithChildren<{ className?: string }>
 export const Card: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ className, children }) => (
   <div
     className={cx(
-      'rounded-3xl border border-slate-200/70 bg-white/80 backdrop-blur',
-      'shadow-[0_12px_40px_rgba(15,23,42,0.10)]',
+      'rounded-3xl border border-slate-200 bg-white',
+      'shadow-[0_12px_40px_rgba(15,23,42,0.08)]',
       className
     )}
   >
@@ -54,8 +54,8 @@ export const IconButton: React.FC<
   <button
     className={cx(
       'grid h-10 w-10 place-items-center rounded-2xl',
-      'border border-slate-200/70 bg-white/60 text-slate-700 backdrop-blur',
-      'shadow-sm hover:bg-white/80 active:bg-white',
+      'border border-slate-200 bg-slate-50 text-slate-700',
+      'shadow-sm hover:bg-[color:var(--color-surface-3)] hover:text-[color:var(--color-primary)] active:bg-slate-100',
       'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2',
       className
     )}

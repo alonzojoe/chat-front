@@ -379,14 +379,14 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
             {/* CHAT */}
             <section
               className={cx(
-                'h-full bg-white/40 backdrop-blur flex flex-col',
+                'h-full bg-[color:var(--color-surface-2)] flex flex-col',
                 mobileMode === 'list' ? 'hidden sm:flex' : 'flex'
               )}
             >
               {activeChannel ? (
                 <>
                   {/* Chat header */}
-                  <div className="p-4 border-b border-slate-200/70 bg-white/60 backdrop-blur">
+                  <div className="p-4 border-b border-slate-200 bg-white">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <button
@@ -426,7 +426,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                   </div>
 
                   {/* Messages */}
-                  <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5">
+                  <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
                     <div className="space-y-3">
                       {messages.map((msg) => {
                         const isOwn = msg.user?.id === currentUser.id;
@@ -467,23 +467,27 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                   </div>
 
                   {/* Composer */}
-                  <div className="p-4 border-t border-slate-200/70 bg-white/70 backdrop-blur">
+                  <div className="p-4 border-t border-slate-200 bg-white">
                     <form onSubmit={sendMessage} className="flex items-end gap-3">
-                      <div className="flex-1 rounded-3xl bg-white/80 border border-slate-200/70 px-4 py-3">
-                        <input
-                          value={messageText}
-                          onChange={(e) => setMessageText(e.target.value)}
-                          placeholder="Write a message…"
-                          className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
-                          disabled={isSending}
-                        />
+                      <div className="flex-1">
+                        <div className="rounded-3xl bg-slate-50 border border-slate-200 px-4 py-3">
+                          <input
+                            value={messageText}
+                            onChange={(e) => setMessageText(e.target.value)}
+                            placeholder="Message…"
+                            className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
+                            disabled={isSending}
+                          />
+                        </div>
                       </div>
+
                       <button
                         type="submit"
                         disabled={!messageText.trim() || isSending}
                         className={cx(
-                          'grid h-12 w-12 place-items-center rounded-3xl',
+                          'grid h-12 w-12 place-items-center rounded-2xl',
                           'bg-[color:var(--color-primary)] text-white shadow-sm',
+                          'hover:brightness-95 active:brightness-90',
                           'disabled:opacity-50',
                           'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2'
                         )}
