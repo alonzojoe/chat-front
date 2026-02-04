@@ -51,17 +51,14 @@ function App() {
         <div className="container mx-auto px-4 py-14">
           {/* Header */}
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 rounded-full border border-purple-200 bg-white/70 px-4 py-2 shadow-sm backdrop-blur">
-              <span className="h-2 w-2 rounded-full bg-purple-500" />
-              <span className="text-sm font-medium text-purple-800">Secure therapy messaging</span>
+            <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 shadow-sm">
+              <span className="h-2 w-2 rounded-full bg-neutral-900" />
+              <span className="text-sm font-medium text-neutral-700">Secure therapy messaging</span>
             </div>
-            <h1 className="mt-5 text-4xl md:text-5xl font-bold tracking-tight text-slate-900">
-              Therapy Chat
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-fuchsia-500">
-                {' '}Platform
-              </span>
+            <h1 className="mt-5 text-4xl md:text-5xl font-bold tracking-tight text-neutral-900">
+              Therapy Chat Platform
             </h1>
-            <p className="mt-3 text-base md:text-lg text-slate-600 max-w-2xl mx-auto">
+            <p className="mt-3 text-base md:text-lg text-neutral-600 max-w-2xl mx-auto">
               A calm, private space for patient–therapist conversations.
             </p>
           </div>
@@ -69,10 +66,10 @@ function App() {
           {/* Demo Login Cards */}
           <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-6">
             {/* Patient Login Card */}
-            <div className="bg-white/80 rounded-2xl shadow-xl overflow-hidden border border-purple-100 backdrop-blur">
-              <div className="bg-gradient-to-r from-violet-600 to-fuchsia-500 px-7 py-6">
-                <h2 className="text-xl font-semibold text-white">Patient</h2>
-                <p className="text-purple-100 mt-1 text-sm">Message your therapist in real time</p>
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-neutral-200">
+              <div className="px-7 py-6 border-b border-neutral-200 bg-white">
+                <h2 className="text-xl font-semibold text-neutral-900">Patient</h2>
+                <p className="text-neutral-600 mt-1 text-sm">Message your therapist in real time</p>
               </div>
 
               <div className="p-6 md:p-7">
@@ -80,7 +77,7 @@ function App() {
                   {/* Patient 1 */}
                   <button
                     onClick={() => handleLogin(DEMO_USERS.patient1, 'user')}
-                    className="w-full flex items-center gap-4 p-4 rounded-xl border border-purple-100 hover:border-purple-200 hover:bg-purple-50/60 transition-all group"
+                    className="w-full flex items-center gap-4 p-4 rounded-xl border border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50 transition-all group"
                   >
                     <img
                       src={DEMO_USERS.patient1.avatar}
@@ -99,7 +96,7 @@ function App() {
                   {/* Patient 2 */}
                   <button
                     onClick={() => handleLogin(DEMO_USERS.patient2, 'user')}
-                    className="w-full flex items-center gap-4 p-4 rounded-xl border border-purple-100 hover:border-purple-200 hover:bg-purple-50/60 transition-all group"
+                    className="w-full flex items-center gap-4 p-4 rounded-xl border border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50 transition-all group"
                   >
                     <img
                       src={DEMO_USERS.patient2.avatar}
@@ -116,12 +113,12 @@ function App() {
                   </button>
                 </div>
 
-                <div className="mt-6 p-4 bg-purple-50/70 rounded-xl border border-purple-100">
+                <div className="mt-6 p-4 bg-neutral-50 rounded-xl border border-neutral-200">
                   <div className="flex gap-3">
-                    <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <Info className="w-5 h-5 text-neutral-900 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-blue-800">Patient Features</p>
-                      <ul className="text-xs text-blue-700 mt-1 space-y-1">
+                      <p className="text-sm font-medium text-neutral-900">Patient Features</p>
+                      <ul className="text-xs text-neutral-600 mt-1 space-y-1">
                         <li>• Chat directly with your assigned therapist</li>
                         <li>• Send secure, encrypted messages</li>
                         <li>• Share files and images</li>
@@ -133,10 +130,10 @@ function App() {
             </div>
 
             {/* Therapist Login Card */}
-            <div className="bg-white/80 rounded-2xl shadow-xl overflow-hidden border border-purple-100 backdrop-blur">
-              <div className="bg-gradient-to-r from-purple-600 to-violet-700 px-7 py-6">
-                <h2 className="text-xl font-semibold text-white">Therapist</h2>
-                <p className="text-purple-100 mt-1 text-sm">Manage conversations, reply fast</p>
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-neutral-200">
+              <div className="px-7 py-6 border-b border-neutral-200 bg-white">
+                <h2 className="text-xl font-semibold text-neutral-900">Therapist</h2>
+                <p className="text-neutral-600 mt-1 text-sm">Manage conversations, reply fast</p>
               </div>
 
               <div className="p-6 md:p-7">
@@ -144,7 +141,7 @@ function App() {
                   {/* Therapist */}
                   <button
                     onClick={() => handleLogin(DEMO_USERS.therapist, 'therapist')}
-                    className="w-full flex items-center gap-4 p-4 rounded-xl border border-purple-100 hover:border-purple-200 hover:bg-purple-50/60 transition-all group"
+                    className="w-full flex items-center gap-4 p-4 rounded-xl border border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50 transition-all group"
                   >
                     <img
                       src={DEMO_USERS.therapist.avatar}
@@ -162,12 +159,12 @@ function App() {
                   </button>
                 </div>
 
-                <div className="mt-6 p-4 bg-purple-50/70 rounded-xl border border-purple-100">
+                <div className="mt-6 p-4 bg-neutral-50 rounded-xl border border-neutral-200">
                   <div className="flex gap-3">
-                    <Info className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                    <Info className="w-5 h-5 text-neutral-900 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-purple-800">Therapist Features</p>
-                      <ul className="text-xs text-purple-700 mt-1 space-y-1">
+                      <p className="text-sm font-medium text-neutral-900">Therapist Features</p>
+                      <ul className="text-xs text-neutral-600 mt-1 space-y-1">
                         <li>• View all patient conversations</li>
                         <li>• Respond to multiple patients</li>
                         <li>• See unread message counts</li>
@@ -182,19 +179,19 @@ function App() {
           {/* Features */}
           <div className="max-w-5xl mx-auto mt-10">
             <div className="grid md:grid-cols-3 gap-4">
-              <div className="p-5 bg-white/70 rounded-2xl border border-purple-100 shadow-sm backdrop-blur">
-                <p className="text-sm font-semibold text-slate-900">Private by design</p>
-                <p className="mt-1 text-sm text-slate-600">Channels are member-only. Tokens are generated server-side.</p>
+              <div className="p-5 bg-white rounded-2xl border border-neutral-200 shadow-sm">
+                <p className="text-sm font-semibold text-neutral-900">Private by design</p>
+                <p className="mt-1 text-sm text-neutral-600">Channels are member-only. Tokens are generated server-side.</p>
               </div>
 
-              <div className="p-5 bg-white/70 rounded-2xl border border-purple-100 shadow-sm backdrop-blur">
-                <p className="text-sm font-semibold text-slate-900">Real‑time chat</p>
-                <p className="mt-1 text-sm text-slate-600">Typing indicators, unread counts, and instant delivery.</p>
+              <div className="p-5 bg-white rounded-2xl border border-neutral-200 shadow-sm">
+                <p className="text-sm font-semibold text-neutral-900">Real‑time chat</p>
+                <p className="mt-1 text-sm text-neutral-600">Typing indicators, unread counts, and instant delivery.</p>
               </div>
 
-              <div className="p-5 bg-white/70 rounded-2xl border border-purple-100 shadow-sm backdrop-blur">
-                <p className="text-sm font-semibold text-slate-900">Calm UI</p>
-                <p className="mt-1 text-sm text-slate-600">Soft purple palette, spacious layout, mobile friendly.</p>
+              <div className="p-5 bg-white rounded-2xl border border-neutral-200 shadow-sm">
+                <p className="text-sm font-semibold text-neutral-900">Clean UI</p>
+                <p className="mt-1 text-sm text-neutral-600">Black/white styling, spacious layout, mobile friendly.</p>
               </div>
             </div>
           </div>
@@ -209,7 +206,7 @@ function App() {
       {/* Logout Button */}
       <button
         onClick={handleLogout}
-        className="absolute top-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-white/80 backdrop-blur px-4 py-2 text-slate-700 shadow-sm border border-purple-100 hover:bg-white transition"
+        className="absolute top-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-neutral-700 shadow-sm border border-neutral-200 hover:bg-neutral-50 transition"
       >
         <LogOut className="w-4 h-4" />
         <span className="text-sm font-medium">Logout</span>
