@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Paperclip, FileText, Info, Send } from 'lucide-react';
+import { FileText, Info, Paperclip, Send } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import type { User } from '../../../shared/types/chat';
 import { publicAssetUrl, type AppointmentSummary, type ChatMessage } from '../../../shared/api/chatApi';
@@ -8,7 +9,7 @@ import { createChatSocket } from '../../../shared/api/chatSocket';
 import { Card, Container, IconButton, cx } from '../../../shared/ui/Ui';
 
 interface UserChatProps {
-  currentUser: User;
+  currentUser: User; // not used yet (kept for later auth integration)
   actorId: number; // numeric id used by backend prototype
 }
 
@@ -53,122 +54,105 @@ const Avatar: React.FC<{ name: string; image?: string; size?: number; ring?: boo
 };
 
 export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
+  const qc = useQueryClient();
+
   const [active, setActive] = useState<AppointmentSummary | null>(null);
   const activeAppointmentIdRef = useRef<number | null>(null);
   const [messageText, setMessageText] = useState('');
 
   const apptsQuery = useAppointments('patient', actorId);
+  const threads = apptsQuery.data ?? [];
+
+  // ensure we always have an active thread when threads load
+  useEffect(() => {
+    if (!active && threads.length > 0) {
+      activeAppointmentIdRef.current = threads[0].appointmentId;
+      setActive(threads[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threads.length]);
+
   const activeAppointmentId = active?.appointmentId ?? null;
   const messagesQuery = useMessages('patient', actorId, activeAppointmentId);
+  const messages = messagesQuery.data ?? [];
 
   const sendMutation = useSendMessage();
   const uploadMutation = useUploadFile();
 
-  const threads = apptsQuery.data ?? [];
-  const messages = messagesQuery.data ?? [];
-  const isLoading = apptsQuery.isLoading || (Boolean(activeAppointmentId) && messagesQuery.isLoading);
-  const error = (apptsQuery.error || messagesQuery.error) as Error | null;
-  const isSending = sendMutation.isPending;
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
   // socket
   const socketRef = useRef<ReturnType<typeof createChatSocket> | null>(null);
 
-  const therapistName = active?.therapistName || 'Your Therapist';
-
-  const openThread = async (appt: AppointmentSummary) => {
-    activeAppointmentIdRef.current = appt.appointmentId;
-    setActive(appt);
-    socketRef.current?.joinAppointment(appt.appointmentId);
-  };
-
+  // join socket room when active thread changes
   useEffect(() => {
-    let mounted = true;
+    if (!socketRef.current) return;
+    if (!activeAppointmentId) return;
+    socketRef.current.joinAppointment(activeAppointmentId);
+  }, [activeAppointmentId]);
 
-    const init = async () => {
-      try {
-        setError(null);
-        setIsLoading(true);
+  // init socket once
+  useEffect(() => {
+    socketRef.current = createChatSocket({ role: 'patient', actorId });
 
-        // init socket
-        socketRef.current = createChatSocket({ role: 'patient', actorId });
-        socketRef.current.socket.on('message:new', ({ message }: { message: ChatMessage }) => {
-          // Avoid stale-closure bugs: use ref for current active appointment id
-          const activeId = activeAppointmentIdRef.current;
-
-          setMessages((prev) => {
-            if (!activeId || message.appointmentId !== activeId) return prev;
-            if (prev.some((m) => m.id === message.id)) return prev;
-            return [...prev, message];
-          });
-
-          refreshThreads().catch(() => { });
-        });
-
-        const appts = await refreshThreads();
-        if (!mounted) return;
-
-        if (appts.length > 0) {
-          await openThread(appts[0]);
-        }
-
-        if (!mounted) return;
-        setIsLoading(false);
-      } catch (err) {
-        console.error(err);
-        if (!mounted) return;
-        setError(err instanceof Error ? err.message : 'Failed to connect');
-        setIsLoading(false);
+    socketRef.current.socket.on('message:new', ({ message }: { message: ChatMessage }) => {
+      const activeId = activeAppointmentIdRef.current;
+      if (activeId && message.appointmentId === activeId) {
+        void messagesQuery.refetch();
       }
-    };
-
-    init();
+      void apptsQuery.refetch();
+    });
 
     return () => {
-      mounted = false;
       socketRef.current?.close();
       socketRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actorId]);
 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const openThread = (appt: AppointmentSummary) => {
+    activeAppointmentIdRef.current = appt.appointmentId;
+    setActive(appt);
+  };
+
+  const therapistName = active?.therapistName || 'Your Therapist';
+  const headerTitle = therapistName;
+
+  const isLoading = apptsQuery.isLoading || (Boolean(activeAppointmentId) && messagesQuery.isLoading);
+  const error = (apptsQuery.error || messagesQuery.error) as Error | null;
+
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!active || !messageText.trim() || isSending) return;
+    if (!active || !messageText.trim() || sendMutation.isPending) return;
 
-    setIsSending(true);
-    try {
-      await sendTextMessage({
-        role: 'patient',
-        actorId,
-        appointmentId: active.appointmentId,
-        body: messageText.trim(),
-      });
-      setMessageText('');
-      // message will also arrive over socket; no need to push optimistically
-    } finally {
-      setIsSending(false);
-    }
+    await sendMutation.mutateAsync({
+      role: 'patient',
+      actorId,
+      appointmentId: active.appointmentId,
+      body: messageText.trim(),
+    });
+
+    setMessageText('');
+
+    // Optimistic refetch (socket will also handle it)
+    await qc.invalidateQueries();
   };
 
   const onPickFile = async (file: File) => {
-    if (!active) return;
-    await uploadFile({ role: 'patient', actorId, appointmentId: active.appointmentId, file });
+    if (!active || uploadMutation.isPending) return;
+    await uploadMutation.mutateAsync({ role: 'patient', actorId, appointmentId: active.appointmentId, file });
+    await qc.invalidateQueries();
   };
-
-  const headerTitle = therapistName;
 
   if (isLoading) {
     return (
       <div className="h-full grid place-items-center px-6">
         <div className="text-center">
           <div className="inline-block h-10 w-10 animate-spin rounded-full border-2 border-[color:var(--color-primary)] border-r-transparent" />
-          <p className="mt-3 text-sm text-slate-600">Connecting…</p>
+          <p className="mt-3 text-sm text-slate-600">Loading…</p>
         </div>
       </div>
     );
@@ -178,8 +162,8 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
     return (
       <div className="h-full grid place-items-center px-6">
         <Card className="p-6 max-w-md w-full">
-          <p className="text-sm font-semibold text-slate-900">Chat failed to connect</p>
-          <p className="mt-2 text-sm text-slate-600 break-words">{error}</p>
+          <p className="text-sm font-semibold text-slate-900">Chat failed to load</p>
+          <p className="mt-2 text-sm text-slate-600 break-words">{error.message}</p>
         </Card>
       </div>
     );
@@ -314,12 +298,12 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
                     onChange={(e) => setMessageText(e.target.value)}
                     placeholder="Message…"
                     className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
-                    disabled={isSending}
+                    disabled={sendMutation.isPending}
                   />
                 </div>
                 <button
                   type="submit"
-                  disabled={!messageText.trim() || isSending}
+                  disabled={!messageText.trim() || sendMutation.isPending}
                   className={cx(
                     'grid h-12 w-12 place-items-center rounded-xl',
                     'bg-[color:var(--color-primary)] text-white shadow-sm',

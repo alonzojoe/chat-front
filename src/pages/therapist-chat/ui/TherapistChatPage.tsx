@@ -1,21 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Search, Plus, Send, Info, Paperclip, FileText } from 'lucide-react';
+import { ArrowLeft, FileText, Info, Paperclip, Plus, Search, Send } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import type { User } from '../../../shared/types/chat';
-import {
-  listAppointments,
-  listMessages,
-  publicAssetUrl,
-  sendTextMessage,
-  uploadFile,
-  type AppointmentSummary,
-  type ChatMessage,
-} from '../../../shared/api/chatApi';
+import { publicAssetUrl, type AppointmentSummary, type ChatMessage } from '../../../shared/api/chatApi';
+import { useAppointments, useMessages, useSendMessage, useUploadFile } from '../../../shared/api/chatQueries';
 import { createChatSocket } from '../../../shared/api/chatSocket';
 import { Card, Container, IconButton, cx } from '../../../shared/ui/Ui';
 
 interface TherapistChatProps {
-  currentUser: User;
+  currentUser: User; // not used yet (kept for later auth integration)
   actorId: number; // numeric id used by backend prototype
 }
 
@@ -78,9 +72,7 @@ const ChatListItem: React.FC<{
       aria-current={active ? 'page' : undefined}
     >
       <div className="flex items-center gap-3">
-        <div className="relative">
-          <Avatar name={info.patientName} size={44} ring={active} />
-        </div>
+        <Avatar name={info.patientName} size={44} ring={active} />
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
@@ -90,7 +82,9 @@ const ChatListItem: React.FC<{
             </div>
 
             <div className="shrink-0 flex flex-col items-end gap-1">
-              <p className="text-[11px] text-slate-500">{info.lastMessageAt ? formatClock(info.lastMessageAt) : ' '}</p>
+              <p className="text-[11px] text-slate-500">
+                {info.lastMessageAt ? formatClock(info.lastMessageAt) : ' '}
+              </p>
               <span className="h-6" />
             </div>
           </div>
@@ -101,109 +95,94 @@ const ChatListItem: React.FC<{
 };
 
 export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => {
-  const [threads, setThreads] = useState<AppointmentSummary[]>([]);
+  const qc = useQueryClient();
+
   const [active, setActive] = useState<AppointmentSummary | null>(null);
   const activeAppointmentIdRef = useRef<number | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messageText, setMessageText] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isSending, setIsSending] = useState(false);
   const [mobileMode, setMobileMode] = useState<'list' | 'chat'>('list');
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const socketRef = useRef<ReturnType<typeof createChatSocket> | null>(null);
-
-  const refreshThreads = async () => {
-    const appts = await listAppointments({ role: 'therapist', actorId });
-    setThreads(appts);
-    return appts;
-  };
-
-  const openThread = async (appt: AppointmentSummary) => {
-    activeAppointmentIdRef.current = appt.appointmentId;
-    setActive(appt);
-    const msgs = await listMessages({ role: 'therapist', actorId, appointmentId: appt.appointmentId });
-    setMessages(msgs);
-    socketRef.current?.joinAppointment(appt.appointmentId);
-    setMobileMode('chat');
-  };
+  const apptsQuery = useAppointments('therapist', actorId);
+  const threads = apptsQuery.data ?? [];
 
   useEffect(() => {
-    let mounted = true;
+    if (!active && threads.length > 0) {
+      activeAppointmentIdRef.current = threads[0].appointmentId;
+      setActive(threads[0]);
+      setMobileMode('chat');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threads.length]);
 
-    const init = async () => {
-      try {
-        setError(null);
-        setIsLoading(true);
+  const activeAppointmentId = active?.appointmentId ?? null;
+  const messagesQuery = useMessages('therapist', actorId, activeAppointmentId);
+  const messages = messagesQuery.data ?? [];
 
-        socketRef.current = createChatSocket({ role: 'therapist', actorId });
-        socketRef.current.socket.on('message:new', ({ message }: { message: ChatMessage }) => {
-          const activeId = activeAppointmentIdRef.current;
+  const sendMutation = useSendMessage();
+  const uploadMutation = useUploadFile();
 
-          setMessages((prev) => {
-            if (!activeId || message.appointmentId !== activeId) return prev;
-            if (prev.some((m) => m.id === message.id)) return prev;
-            return [...prev, message];
-          });
+  // socket
+  const socketRef = useRef<ReturnType<typeof createChatSocket> | null>(null);
 
-          refreshThreads().catch(() => { });
-        });
+  useEffect(() => {
+    if (!socketRef.current) return;
+    if (!activeAppointmentId) return;
+    socketRef.current.joinAppointment(activeAppointmentId);
+  }, [activeAppointmentId]);
 
-        const appts = await refreshThreads();
-        if (!mounted) return;
+  useEffect(() => {
+    socketRef.current = createChatSocket({ role: 'therapist', actorId });
 
-        if (appts.length > 0) {
-          await openThread(appts[0]);
-        }
-
-        if (!mounted) return;
-        setIsLoading(false);
-      } catch (err) {
-        console.error(err);
-        if (!mounted) return;
-        setError(err instanceof Error ? err.message : 'Failed to connect');
-        setIsLoading(false);
+    socketRef.current.socket.on('message:new', ({ message }: { message: ChatMessage }) => {
+      const activeId = activeAppointmentIdRef.current;
+      if (activeId && message.appointmentId === activeId) {
+        void messagesQuery.refetch();
       }
-    };
-
-    init();
+      void apptsQuery.refetch();
+    });
 
     return () => {
-      mounted = false;
       socketRef.current?.close();
       socketRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actorId]);
 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const filteredThreads = useMemo(() => threads, [threads]);
 
+  const openThread = (appt: AppointmentSummary) => {
+    activeAppointmentIdRef.current = appt.appointmentId;
+    setActive(appt);
+    setMobileMode('chat');
+  };
+
+  const isLoading = apptsQuery.isLoading || (Boolean(activeAppointmentId) && messagesQuery.isLoading);
+  const error = (apptsQuery.error || messagesQuery.error) as Error | null;
+
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!active || !messageText.trim() || isSending) return;
+    if (!active || !messageText.trim() || sendMutation.isPending) return;
 
-    setIsSending(true);
-    try {
-      await sendTextMessage({
-        role: 'therapist',
-        actorId,
-        appointmentId: active.appointmentId,
-        body: messageText.trim(),
-      });
-      setMessageText('');
-    } finally {
-      setIsSending(false);
-    }
+    await sendMutation.mutateAsync({
+      role: 'therapist',
+      actorId,
+      appointmentId: active.appointmentId,
+      body: messageText.trim(),
+    });
+
+    setMessageText('');
+    await qc.invalidateQueries();
   };
 
   const onPickFile = async (file: File) => {
-    if (!active) return;
-    await uploadFile({ role: 'therapist', actorId, appointmentId: active.appointmentId, file });
+    if (!active || uploadMutation.isPending) return;
+    await uploadMutation.mutateAsync({ role: 'therapist', actorId, appointmentId: active.appointmentId, file });
+    await qc.invalidateQueries();
   };
 
   if (isLoading) {
@@ -221,8 +200,8 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
     return (
       <div className="h-full grid place-items-center px-6">
         <Card className="p-6 max-w-md w-full">
-          <p className="text-sm font-semibold text-slate-900">Therapist chat failed to connect</p>
-          <p className="mt-2 text-sm text-slate-600 break-words">{error}</p>
+          <p className="text-sm font-semibold text-slate-900">Therapist chat failed to load</p>
+          <p className="mt-2 text-sm text-slate-600 break-words">{error.message}</p>
         </Card>
       </div>
     );
@@ -256,12 +235,12 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                     <Search className="w-4 h-4 text-slate-500" />
                     <input
                       className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
-                      placeholder="Search"
+                      placeholder="Search (prototype)"
                     />
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2">
                   {filteredThreads.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] p-5">
                       <p className="text-sm font-semibold text-slate-900">No conversations yet</p>
@@ -398,13 +377,13 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                           onChange={(e) => setMessageText(e.target.value)}
                           placeholder="Message…"
                           className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
-                          disabled={isSending}
+                          disabled={sendMutation.isPending}
                         />
                       </div>
 
                       <button
                         type="submit"
-                        disabled={!messageText.trim() || isSending}
+                        disabled={!messageText.trim() || sendMutation.isPending}
                         className={cx(
                           'grid h-12 w-12 place-items-center rounded-xl',
                           'bg-[color:var(--color-primary)] text-white shadow-sm',
