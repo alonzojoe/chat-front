@@ -1,21 +1,25 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { StreamChat, Channel as StreamChannel, Event, MessageResponse } from 'stream-chat';
-import { Phone, Video, Info, Send } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Paperclip, Phone, Video, Info, Send } from 'lucide-react';
 
 import type { User } from '../../../shared/types/chat';
-import { getStreamApiKey } from '../../../shared/config/stream';
-import { fetchStreamToken } from '../../../shared/api/streamToken';
+import {
+  listAppointments,
+  listMessages,
+  publicAssetUrl,
+  sendTextMessage,
+  uploadFile,
+  type AppointmentSummary,
+  type ChatMessage,
+} from '../../../shared/api/chatApi';
+import { createChatSocket } from '../../../shared/api/chatSocket';
 import { Card, Container, IconButton, cx } from '../../../shared/ui/Ui';
-
-const API_KEY = getStreamApiKey();
 
 interface UserChatProps {
   currentUser: User;
-  therapistId: string;
-  therapistName?: string;
+  actorId: number; // numeric id used by backend prototype
 }
 
-const formatClock = (date: Date | string | undefined) => {
+const formatClock = (date: string | undefined) => {
   if (!date) return '';
   const d = new Date(date);
   return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -38,7 +42,9 @@ const Avatar: React.FC<{ name: string; image?: string; size?: number; ring?: boo
     <div
       className={cx(
         'shrink-0 rounded-full bg-slate-200 text-slate-700 grid place-items-center overflow-hidden',
-        ring ? 'ring-2 ring-[color:var(--color-primary)] ring-offset-2 ring-offset-white' : 'ring-1 ring-slate-200'
+        ring
+          ? 'ring-2 ring-[color:var(--color-primary)] ring-offset-2 ring-offset-white'
+          : 'ring-1 ring-slate-200'
       )}
       style={{ width: size, height: size }}
       aria-label={name}
@@ -53,20 +59,37 @@ const Avatar: React.FC<{ name: string; image?: string; size?: number; ring?: boo
   );
 };
 
-export const UserChatPage: React.FC<UserChatProps> = ({
-  currentUser,
-  therapistId,
-  therapistName = 'Your Therapist',
-}) => {
-  const [client, setClient] = useState<StreamChat | null>(null);
-  const [channel, setChannel] = useState<StreamChannel | null>(null);
-  const [messages, setMessages] = useState<MessageResponse[]>([]);
+export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
+  const [threads, setThreads] = useState<AppointmentSummary[]>([]);
+  const [active, setActive] = useState<AppointmentSummary | null>(null);
+  const activeAppointmentIdRef = useRef<number | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messageText, setMessageText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isTyping, setIsTyping] = useState(false);
   const [isSending, setIsSending] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // socket
+  const socketRef = useRef<ReturnType<typeof createChatSocket> | null>(null);
+
+  const therapistName = active?.therapistName || 'Your Therapist';
+
+  const refreshThreads = async () => {
+    const appts = await listAppointments({ role: 'patient', actorId });
+    setThreads(appts);
+    return appts;
+  };
+
+  const openThread = async (appt: AppointmentSummary) => {
+    activeAppointmentIdRef.current = appt.appointmentId;
+    setActive(appt);
+    const msgs = await listMessages({ role: 'patient', actorId, appointmentId: appt.appointmentId });
+    setMessages(msgs);
+
+    socketRef.current?.joinAppointment(appt.appointmentId);
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -76,37 +99,29 @@ export const UserChatPage: React.FC<UserChatProps> = ({
         setError(null);
         setIsLoading(true);
 
-        const chatClient = StreamChat.getInstance(API_KEY);
-        const token = await fetchStreamToken(currentUser.id);
+        // init socket
+        socketRef.current = createChatSocket({ role: 'patient', actorId });
+        socketRef.current.socket.on('message:new', ({ message }: { message: ChatMessage }) => {
+          // Avoid stale-closure bugs: use ref for current active appointment id
+          const activeId = activeAppointmentIdRef.current;
 
-        await chatClient.connectUser(
-          {
-            id: currentUser.id,
-            name: currentUser.name,
-            role: currentUser.role,
-            image: currentUser.avatar,
-          },
-          token
-        );
+          setMessages((prev) => {
+            if (!activeId || message.appointmentId !== activeId) return prev;
+            if (prev.some((m) => m.id === message.id)) return prev;
+            return [...prev, message];
+          });
 
-        if (!mounted) return;
-        setClient(chatClient);
-
-        const channelId = `user_${currentUser.id}_therapist_${therapistId}`;
-        const ch = chatClient.channel('messaging', channelId, {
-          name: 'Chat',
-          members: [currentUser.id, therapistId],
-          private: true,
-          created_by_user: currentUser.id,
-          therapist_id: therapistId,
+          refreshThreads().catch(() => {});
         });
 
-        await ch.watch();
-        const state = await ch.query({ messages: { limit: 50 } });
+        const appts = await refreshThreads();
+        if (!mounted) return;
+
+        if (appts.length > 0) {
+          await openThread(appts[0]);
+        }
 
         if (!mounted) return;
-        setChannel(ch);
-        setMessages(state.messages || []);
         setIsLoading(false);
       } catch (err) {
         console.error(err);
@@ -120,81 +135,41 @@ export const UserChatPage: React.FC<UserChatProps> = ({
 
     return () => {
       mounted = false;
-      if (client) client.disconnectUser().catch(console.error);
+      socketRef.current?.close();
+      socketRef.current = null;
     };
-  }, [currentUser.id, currentUser.name, currentUser.role, currentUser.avatar, therapistId]);
-
-  useEffect(() => {
-    if (!channel) return;
-
-    const onNew = (event: Event) => {
-      if (event.message) setMessages((prev) => [...prev, event.message as MessageResponse]);
-    };
-
-    const onTypingStart = (event: Event) => {
-      if (event.user?.id && event.user.id !== currentUser.id) setIsTyping(true);
-    };
-
-    const onTypingStop = () => setIsTyping(false);
-
-    channel.on('message.new', onNew);
-    channel.on('typing.start', onTypingStart);
-    channel.on('typing.stop', onTypingStop);
-
-    return () => {
-      channel.off('message.new', onNew);
-      channel.off('typing.start', onTypingStart);
-      channel.off('typing.stop', onTypingStop);
-    };
-  }, [channel, currentUser.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actorId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const otherMember = useMemo(() => {
-    if (!channel) return undefined;
-    return Object.values(channel.state.members).find((m) => m.user?.id !== currentUser.id)?.user as any;
-  }, [channel, currentUser.id]);
-
-  const seenText = useMemo(() => {
-    if (!channel || messages.length === 0) return '';
-    const lastOwn = [...messages].reverse().find((m) => m.user?.id === currentUser.id);
-    if (!lastOwn?.created_at) return '';
-
-    const readMap = (channel.state.read as unknown as Record<string, any>) || undefined;
-    if (!readMap) return '';
-
-    const otherRead = Object.entries(readMap)
-      .filter(([userId]) => userId !== currentUser.id)
-      .map(([, r]) => r as { last_read?: Date | string })
-      .sort((a, b) => new Date(b.last_read || 0).getTime() - new Date(a.last_read || 0).getTime())[0];
-
-    if (!otherRead?.last_read) return '';
-
-    const otherLastRead = new Date(otherRead.last_read).getTime();
-    const msgTime = new Date(lastOwn.created_at).getTime();
-    if (otherLastRead >= msgTime) return `Seen · ${formatClock(otherRead.last_read)}`;
-    return '';
-  }, [channel, messages, currentUser.id]);
-
-  const sendMessage = async (e: React.FormEvent) => {
+  const send = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!channel || !messageText.trim() || isSending) return;
+    if (!active || !messageText.trim() || isSending) return;
+
     setIsSending(true);
     try {
-      await channel.sendMessage({ text: messageText });
+      await sendTextMessage({
+        role: 'patient',
+        actorId,
+        appointmentId: active.appointmentId,
+        body: messageText.trim(),
+      });
       setMessageText('');
-      await channel.stopTyping();
+      // message will also arrive over socket; no need to push optimistically
     } finally {
       setIsSending(false);
     }
   };
 
-  const handleTyping = async (text: string) => {
-    setMessageText(text);
-    if (channel && text.length > 0) await channel.keystroke();
+  const onPickFile = async (file: File) => {
+    if (!active) return;
+    await uploadFile({ role: 'patient', actorId, appointmentId: active.appointmentId, file });
   };
+
+  const headerTitle = therapistName;
 
   if (isLoading) {
     return (
@@ -218,10 +193,6 @@ export const UserChatPage: React.FC<UserChatProps> = ({
     );
   }
 
-  const title = therapistName;
-  const avatarName = (otherMember?.name as string) || therapistName;
-  const avatarImage = (otherMember?.image as string | undefined) || undefined;
-
   return (
     <div className="h-full w-full">
       <Container className="h-full py-4 sm:py-6">
@@ -231,18 +202,18 @@ export const UserChatPage: React.FC<UserChatProps> = ({
             <div className="p-4 bg-white border-b border-[color:var(--color-border)]">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <Avatar name={avatarName} image={avatarImage} size={42} ring />
+                  <Avatar name={headerTitle} size={42} ring />
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-900 truncate">{title}</p>
-                    <p className="text-xs text-slate-500 truncate">Online</p>
+                    <p className="text-sm font-semibold text-slate-900 truncate">{headerTitle}</p>
+                    <p className="text-xs text-slate-500 truncate">Appointment chat</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <IconButton aria-label="Call">
+                  <IconButton aria-label="Call" title="Disabled in prototype">
                     <Phone className="w-4 h-4" />
                   </IconButton>
-                  <IconButton aria-label="Video">
+                  <IconButton aria-label="Video" title="Disabled in prototype">
                     <Video className="w-4 h-4" />
                   </IconButton>
                   <IconButton aria-label="Info">
@@ -250,24 +221,40 @@ export const UserChatPage: React.FC<UserChatProps> = ({
                   </IconButton>
                 </div>
               </div>
+
+              {/* Thread picker (simple) */}
+              {threads.length > 1 ? (
+                <div className="mt-3 flex gap-2 overflow-x-auto">
+                  {threads.map((t) => (
+                    <button
+                      key={t.appointmentId}
+                      className={cx(
+                        'shrink-0 rounded-xl border px-3 py-2 text-xs font-semibold',
+                        t.appointmentId === active?.appointmentId
+                          ? 'border-[color:var(--color-primary)] bg-[color:var(--color-surface-2)]'
+                          : 'border-[color:var(--color-border)] bg-white'
+                      )}
+                      onClick={() => openThread(t)}
+                    >
+                      Appt #{t.appointmentId}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </div>
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
               <div className="space-y-3">
-                {messages.map((msg, idx) => {
-                  const isOwn = msg.user?.id === currentUser.id;
-                  const isLast = idx === messages.length - 1;
+                {messages.map((msg) => {
+                  const isOwn = msg.senderRole === 'patient' && msg.senderId === actorId;
 
                   return (
-                    <div key={msg.id} className={cx('flex items-end gap-2', isOwn ? 'justify-end' : 'justify-start')}>
-                      {!isOwn ? (
-                        <Avatar
-                          name={msg.user?.name || therapistName}
-                          image={(msg.user?.image as string | undefined) || undefined}
-                          size={28}
-                        />
-                      ) : null}
+                    <div
+                      key={msg.id}
+                      className={cx('flex items-end gap-2', isOwn ? 'justify-end' : 'justify-start')}
+                    >
+                      {!isOwn ? <Avatar name={therapistName} size={28} /> : null}
 
                       <div className={cx('max-w-[78%]', isOwn ? 'text-right' : 'text-left')}>
                         <div
@@ -278,20 +265,33 @@ export const UserChatPage: React.FC<UserChatProps> = ({
                               : 'bg-white border border-[color:var(--color-border)] text-slate-900'
                           )}
                         >
-                          {msg.text}
+                          {msg.body ? msg.body : null}
+                          {msg.fileUrl ? (
+                            <div className={cx('mt-2', isOwn ? 'text-white/90' : 'text-slate-700')}>
+                              {msg.fileType?.startsWith('image/') ? (
+                                <img
+                                  className="mt-2 max-w-[240px] rounded-xl"
+                                  src={publicAssetUrl(msg.fileUrl)}
+                                  alt={msg.fileName || 'image'}
+                                />
+                              ) : (
+                                <a
+                                  className={cx('underline text-sm', isOwn ? 'text-white' : 'text-[color:var(--color-primary)]')}
+                                  href={publicAssetUrl(msg.fileUrl)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  {msg.fileName || 'Download attachment'}
+                                </a>
+                              )}
+                            </div>
+                          ) : null}
                         </div>
-                        <div className={cx('mt-1 text-[11px] text-slate-500 flex items-center gap-2', isOwn ? 'justify-end' : 'justify-start')}>
-                          <span>{formatClock(msg.created_at)}</span>
-                          {isOwn && isLast && seenText ? <span>{seenText}</span> : null}
-                        </div>
+                        <div className={cx('mt-1 text-[11px] text-slate-500')}>{formatClock(msg.createdAt)}</div>
                       </div>
                     </div>
                   );
                 })}
-
-                {isTyping ? (
-                  <div className="text-sm text-slate-500">{therapistName} is typing…</div>
-                ) : null}
 
                 <div ref={messagesEndRef} />
               </div>
@@ -299,11 +299,27 @@ export const UserChatPage: React.FC<UserChatProps> = ({
 
             {/* Composer */}
             <div className="p-4 bg-white border-t border-[color:var(--color-border)]">
-              <form onSubmit={sendMessage} className="flex items-end gap-3">
+              <form onSubmit={send} className="flex items-end gap-3">
+                <label
+                  className="grid h-12 w-12 place-items-center rounded-xl border border-[color:var(--color-border)] bg-white hover:bg-[color:var(--color-surface-2)] cursor-pointer"
+                  title="Attach file"
+                >
+                  <input
+                    className="hidden"
+                    type="file"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) void onPickFile(f);
+                      e.currentTarget.value = '';
+                    }}
+                  />
+                  <Paperclip className="w-5 h-5 text-slate-700" />
+                </label>
+
                 <div className="flex-1 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-4 py-3">
                   <input
                     value={messageText}
-                    onChange={(e) => handleTyping(e.target.value)}
+                    onChange={(e) => setMessageText(e.target.value)}
                     placeholder="Message…"
                     className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
                     disabled={isSending}

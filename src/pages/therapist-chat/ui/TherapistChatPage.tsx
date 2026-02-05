@@ -1,28 +1,25 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { StreamChat, Channel as StreamChannel, Event, MessageResponse } from 'stream-chat';
-import { ArrowLeft, Search, Plus, Send, Phone, Video, Info } from 'lucide-react';
+import { ArrowLeft, Search, Plus, Send, Phone, Video, Info, Paperclip } from 'lucide-react';
 
 import type { User } from '../../../shared/types/chat';
-import { getStreamApiKey } from '../../../shared/config/stream';
-import { fetchStreamToken } from '../../../shared/api/streamToken';
+import {
+  listAppointments,
+  listMessages,
+  publicAssetUrl,
+  sendTextMessage,
+  uploadFile,
+  type AppointmentSummary,
+  type ChatMessage,
+} from '../../../shared/api/chatApi';
+import { createChatSocket } from '../../../shared/api/chatSocket';
 import { Card, Container, IconButton, cx } from '../../../shared/ui/Ui';
-
-const API_KEY = getStreamApiKey();
 
 interface TherapistChatProps {
   currentUser: User;
+  actorId: number; // numeric id used by backend prototype
 }
 
-interface ChannelInfo {
-  channel: StreamChannel;
-  patientName: string;
-  patientImage?: string;
-  lastMessage: string;
-  lastMessageTime: string;
-  unreadCount: number;
-}
-
-const formatClock = (date: Date | string | undefined) => {
+const formatClock = (date: string | undefined) => {
   if (!date) return '';
   const d = new Date(date);
   return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -45,7 +42,9 @@ const Avatar: React.FC<{ name: string; image?: string; size?: number; ring?: boo
     <div
       className={cx(
         'shrink-0 rounded-full bg-slate-200 text-slate-700 grid place-items-center overflow-hidden',
-        ring ? 'ring-2 ring-[color:var(--color-primary)] ring-offset-2 ring-offset-white' : 'ring-1 ring-slate-200'
+        ring
+          ? 'ring-2 ring-[color:var(--color-primary)] ring-offset-2 ring-offset-white'
+          : 'ring-1 ring-slate-200'
       )}
       style={{ width: size, height: size }}
       aria-label={name}
@@ -61,11 +60,11 @@ const Avatar: React.FC<{ name: string; image?: string; size?: number; ring?: boo
 };
 
 const ChatListItem: React.FC<{
-  info: ChannelInfo;
+  info: AppointmentSummary;
   active: boolean;
   onClick: () => void;
 }> = ({ info, active, onClick }) => {
-  const hasUnread = info.unreadCount > 0;
+  const last = info.lastMessage || 'No messages yet';
 
   return (
     <button
@@ -80,30 +79,19 @@ const ChatListItem: React.FC<{
     >
       <div className="flex items-center gap-3">
         <div className="relative">
-          <Avatar name={info.patientName} image={info.patientImage} size={44} ring={active || hasUnread} />
-          {hasUnread ? (
-            <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-[color:var(--color-primary)] ring-2 ring-white" />
-          ) : null}
+          <Avatar name={info.patientName} size={44} ring={active} />
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-900 truncate">{info.patientName}</p>
-              <p className={cx('mt-0.5 text-sm truncate', hasUnread ? 'text-slate-700' : 'text-slate-600')}>
-                {info.lastMessage}
-              </p>
+              <p className="mt-0.5 text-sm truncate text-slate-600">{last}</p>
             </div>
 
             <div className="shrink-0 flex flex-col items-end gap-1">
-              <p className="text-[11px] text-slate-500">{info.lastMessageTime || ' '}</p>
-              {hasUnread ? (
-                <span className="min-w-6 h-6 px-2 rounded-full bg-[color:var(--color-primary)] text-white text-xs grid place-items-center">
-                  {info.unreadCount}
-                </span>
-              ) : (
-                <span className="h-6" />
-              )}
+              <p className="text-[11px] text-slate-500">{info.lastMessageAt ? formatClock(info.lastMessageAt) : ' '}</p>
+              <span className="h-6" />
             </div>
           </div>
         </div>
@@ -112,11 +100,11 @@ const ChatListItem: React.FC<{
   );
 };
 
-export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser }) => {
-  const [client, setClient] = useState<StreamChat | null>(null);
-  const [channels, setChannels] = useState<ChannelInfo[]>([]);
-  const [activeChannel, setActiveChannel] = useState<StreamChannel | null>(null);
-  const [messages, setMessages] = useState<MessageResponse[]>([]);
+export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => {
+  const [threads, setThreads] = useState<AppointmentSummary[]>([]);
+  const [active, setActive] = useState<AppointmentSummary | null>(null);
+  const activeAppointmentIdRef = useRef<number | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messageText, setMessageText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -124,33 +112,21 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
   const [mobileMode, setMobileMode] = useState<'list' | 'chat'>('list');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const socketRef = useRef<ReturnType<typeof createChatSocket> | null>(null);
 
-  const refreshChannels = async (chatClient: StreamChat) => {
-    const filter = { type: 'messaging', members: { $in: [currentUser.id] } };
-    const sort = [{ last_message_at: -1 as const }];
+  const refreshThreads = async () => {
+    const appts = await listAppointments({ role: 'therapist', actorId });
+    setThreads(appts);
+    return appts;
+  };
 
-    const channelList = await chatClient.queryChannels(filter, sort, {
-      watch: true,
-      state: true,
-    });
-
-    const infos: ChannelInfo[] = channelList.map((ch) => {
-      const msgs = ch.state.messages;
-      const last = msgs[msgs.length - 1];
-      const other = Object.values(ch.state.members).find((m) => m.user?.id !== currentUser.id)?.user as any;
-
-      return {
-        channel: ch,
-        patientName: (other?.name as string) || 'Patient',
-        patientImage: (other?.image as string | undefined) || undefined,
-        lastMessage: last?.text || 'No messages yet',
-        lastMessageTime: last?.created_at ? formatClock(last.created_at) : '',
-        unreadCount: ch.countUnread(),
-      };
-    });
-
-    setChannels(infos);
-    return channelList;
+  const openThread = async (appt: AppointmentSummary) => {
+    activeAppointmentIdRef.current = appt.appointmentId;
+    setActive(appt);
+    const msgs = await listMessages({ role: 'therapist', actorId, appointmentId: appt.appointmentId });
+    setMessages(msgs);
+    socketRef.current?.joinAppointment(appt.appointmentId);
+    setMobileMode('chat');
   };
 
   useEffect(() => {
@@ -161,24 +137,25 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
         setError(null);
         setIsLoading(true);
 
-        const chatClient = StreamChat.getInstance(API_KEY);
-        const token = await fetchStreamToken(currentUser.id);
+        socketRef.current = createChatSocket({ role: 'therapist', actorId });
+        socketRef.current.socket.on('message:new', ({ message }: { message: ChatMessage }) => {
+          const activeId = activeAppointmentIdRef.current;
 
-        await chatClient.connectUser(
-          {
-            id: currentUser.id,
-            name: currentUser.name,
-            role: currentUser.role,
-            image: currentUser.avatar,
-          },
-          token
-        );
+          setMessages((prev) => {
+            if (!activeId || message.appointmentId !== activeId) return prev;
+            if (prev.some((m) => m.id === message.id)) return prev;
+            return [...prev, message];
+          });
 
+          refreshThreads().catch(() => {});
+        });
+
+        const appts = await refreshThreads();
         if (!mounted) return;
-        setClient(chatClient);
 
-        const list = await refreshChannels(chatClient);
-        if (list.length > 0) await selectChannel(list[0]);
+        if (appts.length > 0) {
+          await openThread(appts[0]);
+        }
 
         if (!mounted) return;
         setIsLoading(false);
@@ -194,57 +171,39 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
 
     return () => {
       mounted = false;
-      if (client) client.disconnectUser().catch(console.error);
+      socketRef.current?.close();
+      socketRef.current = null;
     };
-  }, [currentUser.id, currentUser.name, currentUser.role, currentUser.avatar]);
-
-  useEffect(() => {
-    if (!activeChannel) return;
-
-    const handleNewMessage = async (event: Event) => {
-      if (!event.message) return;
-      setMessages((prev) => [...prev, event.message as MessageResponse]);
-      if (client) {
-        try {
-          await refreshChannels(client);
-        } catch {}
-      }
-    };
-
-    activeChannel.on('message.new', handleNewMessage);
-    return () => {
-      activeChannel.off('message.new', handleNewMessage);
-    };
-  }, [activeChannel, client]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actorId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const selectChannel = async (ch: StreamChannel) => {
-    setActiveChannel(ch);
-    const state = await ch.query({ messages: { limit: 50 } });
-    setMessages(state.messages || []);
-    await ch.markRead();
-    setMobileMode('chat');
-  };
+  const filteredThreads = useMemo(() => threads, [threads]);
 
-  const activeInfo = useMemo(
-    () => channels.find((c) => c.channel.id === activeChannel?.id),
-    [channels, activeChannel]
-  );
-
-  const sendMessage = async (e: React.FormEvent) => {
+  const send = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeChannel || !messageText.trim() || isSending) return;
+    if (!active || !messageText.trim() || isSending) return;
 
     setIsSending(true);
     try {
-      await activeChannel.sendMessage({ text: messageText });
+      await sendTextMessage({
+        role: 'therapist',
+        actorId,
+        appointmentId: active.appointmentId,
+        body: messageText.trim(),
+      });
       setMessageText('');
     } finally {
       setIsSending(false);
     }
+  };
+
+  const onPickFile = async (file: File) => {
+    if (!active) return;
+    await uploadFile({ role: 'therapist', actorId, appointmentId: active.appointmentId, file });
   };
 
   if (isLoading) {
@@ -288,7 +247,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                       <p className="text-sm font-semibold text-slate-900 truncate">Inbox</p>
                       <p className="text-xs text-slate-500 truncate">All patient conversations</p>
                     </div>
-                    <IconButton aria-label="New conversation" title="New">
+                    <IconButton aria-label="New conversation" title="Prototype">
                       <Plus className="w-4 h-4" />
                     </IconButton>
                   </div>
@@ -297,13 +256,13 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                     <Search className="w-4 h-4 text-slate-500" />
                     <input
                       className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
-                      placeholder="Search"
+                      placeholder="Search (prototype)"
                     />
                   </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                  {channels.length === 0 ? (
+                  {filteredThreads.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] p-5">
                       <p className="text-sm font-semibold text-slate-900">No conversations yet</p>
                       <p className="mt-1 text-sm text-slate-600">
@@ -311,12 +270,12 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                       </p>
                     </div>
                   ) : (
-                    channels.map((info) => (
+                    filteredThreads.map((t) => (
                       <ChatListItem
-                        key={info.channel.id}
-                        info={info}
-                        active={activeChannel?.id === info.channel.id}
-                        onClick={() => selectChannel(info.channel)}
+                        key={t.appointmentId}
+                        info={t}
+                        active={active?.appointmentId === t.appointmentId}
+                        onClick={() => openThread(t)}
                       />
                     ))
                   )}
@@ -325,8 +284,13 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
             </aside>
 
             {/* CHAT */}
-            <section className={cx('h-full flex flex-col bg-[color:var(--color-bg)]', mobileMode === 'list' ? 'hidden sm:flex' : 'flex')}>
-              {activeChannel ? (
+            <section
+              className={cx(
+                'h-full flex flex-col bg-[color:var(--color-bg)]',
+                mobileMode === 'list' ? 'hidden sm:flex' : 'flex'
+              )}
+            >
+              {active ? (
                 <>
                   <div className="p-4 bg-white border-b border-[color:var(--color-border)]">
                     <div className="flex items-center justify-between gap-3">
@@ -338,23 +302,18 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                         >
                           <ArrowLeft className="w-5 h-5" />
                         </button>
-                        <Avatar
-                          name={activeInfo?.patientName || 'Patient'}
-                          image={activeInfo?.patientImage}
-                          size={42}
-                          ring
-                        />
+                        <Avatar name={active.patientName} size={42} ring />
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-slate-900 truncate">{activeInfo?.patientName || 'Patient'}</p>
-                          <p className="text-xs text-slate-500 truncate">Online</p>
+                          <p className="text-sm font-semibold text-slate-900 truncate">{active.patientName}</p>
+                          <p className="text-xs text-slate-500 truncate">Appt #{active.appointmentId}</p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <IconButton aria-label="Call">
+                        <IconButton aria-label="Call" title="Disabled">
                           <Phone className="w-4 h-4" />
                         </IconButton>
-                        <IconButton aria-label="Video">
+                        <IconButton aria-label="Video" title="Disabled">
                           <Video className="w-4 h-4" />
                         </IconButton>
                         <IconButton aria-label="Info">
@@ -367,16 +326,13 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                   <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
                     <div className="space-y-3">
                       {messages.map((msg) => {
-                        const isOwn = msg.user?.id === currentUser.id;
+                        const isOwn = msg.senderRole === 'therapist' && msg.senderId === actorId;
                         return (
-                          <div key={msg.id} className={cx('flex items-end gap-2', isOwn ? 'justify-end' : 'justify-start')}>
-                            {!isOwn ? (
-                              <Avatar
-                                name={msg.user?.name || 'Patient'}
-                                image={(msg.user?.image as string | undefined) || undefined}
-                                size={28}
-                              />
-                            ) : null}
+                          <div
+                            key={msg.id}
+                            className={cx('flex items-end gap-2', isOwn ? 'justify-end' : 'justify-start')}
+                          >
+                            {!isOwn ? <Avatar name={active.patientName} size={28} /> : null}
 
                             <div className={cx('max-w-[78%]', isOwn ? 'text-right' : 'text-left')}>
                               <div
@@ -387,9 +343,32 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                                     : 'bg-white border border-[color:var(--color-border)] text-slate-900'
                                 )}
                               >
-                                {msg.text}
+                                {msg.body ? msg.body : null}
+                                {msg.fileUrl ? (
+                                  <div className={cx('mt-2', isOwn ? 'text-white/90' : 'text-slate-700')}>
+                                    {msg.fileType?.startsWith('image/') ? (
+                                      <img
+                                        className="mt-2 max-w-[240px] rounded-xl"
+                                        src={publicAssetUrl(msg.fileUrl)}
+                                        alt={msg.fileName || 'image'}
+                                      />
+                                    ) : (
+                                      <a
+                                        className={cx(
+                                          'underline text-sm',
+                                          isOwn ? 'text-white' : 'text-[color:var(--color-primary)]'
+                                        )}
+                                        href={publicAssetUrl(msg.fileUrl)}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                      >
+                                        {msg.fileName || 'Download attachment'}
+                                      </a>
+                                    )}
+                                  </div>
+                                ) : null}
                               </div>
-                              <div className="mt-1 text-[11px] text-slate-500">{formatClock(msg.created_at)}</div>
+                              <div className="mt-1 text-[11px] text-slate-500">{formatClock(msg.createdAt)}</div>
                             </div>
                           </div>
                         );
@@ -399,7 +378,23 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ currentUser })
                   </div>
 
                   <div className="p-4 bg-white border-t border-[color:var(--color-border)]">
-                    <form onSubmit={sendMessage} className="flex items-end gap-3">
+                    <form onSubmit={send} className="flex items-end gap-3">
+                      <label
+                        className="grid h-12 w-12 place-items-center rounded-xl border border-[color:var(--color-border)] bg-white hover:bg-[color:var(--color-surface-2)] cursor-pointer"
+                        title="Attach file"
+                      >
+                        <input
+                          className="hidden"
+                          type="file"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) void onPickFile(f);
+                            e.currentTarget.value = '';
+                          }}
+                        />
+                        <Paperclip className="w-5 h-5 text-slate-700" />
+                      </label>
+
                       <div className="flex-1 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-4 py-3">
                         <input
                           value={messageText}
