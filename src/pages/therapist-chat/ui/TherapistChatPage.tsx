@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Search, Plus, Send, Phone, Video, Info, Paperclip } from 'lucide-react';
+import { ArrowLeft, Search, Plus, Send, Info, Paperclip, FileText } from 'lucide-react';
 
 import type { User } from '../../../shared/types/chat';
 import {
@@ -147,7 +147,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
             return [...prev, message];
           });
 
-          refreshThreads().catch(() => {});
+          refreshThreads().catch(() => { });
         });
 
         const appts = await refreshThreads();
@@ -232,15 +232,15 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
     <div className="h-full w-full">
       <Container className="h-full py-4 sm:py-6">
         <Card className="h-[calc(100vh-88px)] min-h-[640px] overflow-hidden">
-          <div className="h-full grid sm:grid-cols-[360px_1fr]">
+          <div className="h-full min-h-0 grid sm:grid-cols-[360px_1fr]">
             {/* LIST */}
             <aside
               className={cx(
-                'h-full border-r border-[color:var(--color-border)] bg-white',
+                'h-full min-h-0 border-r border-[color:var(--color-border)] bg-white',
                 mobileMode === 'chat' ? 'hidden sm:block' : 'block'
               )}
             >
-              <div className="h-full flex flex-col">
+              <div className="h-full min-h-0 flex flex-col">
                 <div className="p-4 border-b border-[color:var(--color-border)]">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
@@ -256,7 +256,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                     <Search className="w-4 h-4 text-slate-500" />
                     <input
                       className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
-                      placeholder="Search (prototype)"
+                      placeholder="Search"
                     />
                   </div>
                 </div>
@@ -286,7 +286,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
             {/* CHAT */}
             <section
               className={cx(
-                'h-full flex flex-col bg-[color:var(--color-bg)]',
+                'h-full min-h-0 flex flex-col bg-[color:var(--color-bg)]',
                 mobileMode === 'list' ? 'hidden sm:flex' : 'flex'
               )}
             >
@@ -310,12 +310,6 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <IconButton aria-label="Call" title="Disabled">
-                          <Phone className="w-4 h-4" />
-                        </IconButton>
-                        <IconButton aria-label="Video" title="Disabled">
-                          <Video className="w-4 h-4" />
-                        </IconButton>
                         <IconButton aria-label="Info">
                           <Info className="w-4 h-4" />
                         </IconButton>
@@ -323,7 +317,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                     </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
+                  <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-6">
                     <div className="space-y-3">
                       {messages.map((msg) => {
                         const isOwn = msg.senderRole === 'therapist' && msg.senderId === actorId;
@@ -355,14 +349,17 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                                     ) : (
                                       <a
                                         className={cx(
-                                          'underline text-sm',
-                                          isOwn ? 'text-white' : 'text-[color:var(--color-primary)]'
+                                          'inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm',
+                                          isOwn
+                                            ? 'border-white/25 bg-white/10 text-white hover:bg-white/15'
+                                            : 'border-[color:var(--color-border)] bg-white text-[color:var(--color-primary)] hover:bg-[color:var(--color-surface-2)]'
                                         )}
                                         href={publicAssetUrl(msg.fileUrl)}
                                         target="_blank"
                                         rel="noreferrer"
                                       >
-                                        {msg.fileName || 'Download attachment'}
+                                        <FileText className="h-4 w-4" />
+                                        <span className="truncate max-w-[220px]">{msg.fileName || 'Download attachment'}</span>
                                       </a>
                                     )}
                                   </div>

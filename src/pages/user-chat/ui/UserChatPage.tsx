@@ -1,16 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Paperclip, Phone, Video, Info, Send } from 'lucide-react';
+import { Paperclip, FileText, Info, Send } from 'lucide-react';
 
 import type { User } from '../../../shared/types/chat';
-import {
-  listAppointments,
-  listMessages,
-  publicAssetUrl,
-  sendTextMessage,
-  uploadFile,
-  type AppointmentSummary,
-  type ChatMessage,
-} from '../../../shared/api/chatApi';
+import { publicAssetUrl, type AppointmentSummary, type ChatMessage } from '../../../shared/api/chatApi';
+import { useAppointments, useMessages, useSendMessage, useUploadFile } from '../../../shared/api/chatQueries';
 import { createChatSocket } from '../../../shared/api/chatSocket';
 import { Card, Container, IconButton, cx } from '../../../shared/ui/Ui';
 
@@ -60,14 +53,22 @@ const Avatar: React.FC<{ name: string; image?: string; size?: number; ring?: boo
 };
 
 export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
-  const [threads, setThreads] = useState<AppointmentSummary[]>([]);
   const [active, setActive] = useState<AppointmentSummary | null>(null);
   const activeAppointmentIdRef = useRef<number | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messageText, setMessageText] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isSending, setIsSending] = useState(false);
+
+  const apptsQuery = useAppointments('patient', actorId);
+  const activeAppointmentId = active?.appointmentId ?? null;
+  const messagesQuery = useMessages('patient', actorId, activeAppointmentId);
+
+  const sendMutation = useSendMessage();
+  const uploadMutation = useUploadFile();
+
+  const threads = apptsQuery.data ?? [];
+  const messages = messagesQuery.data ?? [];
+  const isLoading = apptsQuery.isLoading || (Boolean(activeAppointmentId) && messagesQuery.isLoading);
+  const error = (apptsQuery.error || messagesQuery.error) as Error | null;
+  const isSending = sendMutation.isPending;
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -76,18 +77,9 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
 
   const therapistName = active?.therapistName || 'Your Therapist';
 
-  const refreshThreads = async () => {
-    const appts = await listAppointments({ role: 'patient', actorId });
-    setThreads(appts);
-    return appts;
-  };
-
   const openThread = async (appt: AppointmentSummary) => {
     activeAppointmentIdRef.current = appt.appointmentId;
     setActive(appt);
-    const msgs = await listMessages({ role: 'patient', actorId, appointmentId: appt.appointmentId });
-    setMessages(msgs);
-
     socketRef.current?.joinAppointment(appt.appointmentId);
   };
 
@@ -111,7 +103,7 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
             return [...prev, message];
           });
 
-          refreshThreads().catch(() => {});
+          refreshThreads().catch(() => { });
         });
 
         const appts = await refreshThreads();
@@ -210,12 +202,6 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <IconButton aria-label="Call" title="Disabled in prototype">
-                    <Phone className="w-4 h-4" />
-                  </IconButton>
-                  <IconButton aria-label="Video" title="Disabled in prototype">
-                    <Video className="w-4 h-4" />
-                  </IconButton>
                   <IconButton aria-label="Info">
                     <Info className="w-4 h-4" />
                   </IconButton>
@@ -276,12 +262,18 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
                                 />
                               ) : (
                                 <a
-                                  className={cx('underline text-sm', isOwn ? 'text-white' : 'text-[color:var(--color-primary)]')}
+                                  className={cx(
+                                    'inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm',
+                                    isOwn
+                                      ? 'border-white/25 bg-white/10 text-white hover:bg-white/15'
+                                      : 'border-[color:var(--color-border)] bg-white text-[color:var(--color-primary)] hover:bg-[color:var(--color-surface-2)]'
+                                  )}
                                   href={publicAssetUrl(msg.fileUrl)}
                                   target="_blank"
                                   rel="noreferrer"
                                 >
-                                  {msg.fileName || 'Download attachment'}
+                                  <FileText className="h-4 w-4" />
+                                  <span className="truncate max-w-[220px]">{msg.fileName || 'Download attachment'}</span>
                                 </a>
                               )}
                             </div>
