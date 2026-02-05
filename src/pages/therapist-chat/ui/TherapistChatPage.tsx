@@ -37,7 +37,7 @@ const Avatar: React.FC<{ name: string; image?: string; size?: number; ring?: boo
       className={cx(
         'shrink-0 rounded-full bg-slate-200 text-slate-700 grid place-items-center overflow-hidden',
         ring
-          ? 'ring-2 ring-[color:var(--color-primary)] ring-offset-2 ring-offset-white'
+          ? 'ring-2 ring-primary ring-offset-2 ring-offset-white'
           : 'ring-1 ring-slate-200'
       )}
       style={{ width: size, height: size }}
@@ -65,9 +65,9 @@ const ChatListItem: React.FC<{
       onClick={onClick}
       className={cx(
         'w-full text-left rounded-xl border px-3.5 py-3 transition',
-        'border-[color:var(--color-border)] bg-white',
-        'hover:bg-[color:var(--color-surface-2)]',
-        active && 'bg-[color:var(--color-surface-2)]'
+        'border-border bg-white',
+        'hover:bg-surface-2',
+        active && 'bg-surface-2'
       )}
       aria-current={active ? 'page' : undefined}
     >
@@ -189,7 +189,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
     return (
       <div className="h-full grid place-items-center px-6">
         <div className="text-center">
-          <div className="inline-block h-10 w-10 animate-spin rounded-full border-2 border-[color:var(--color-primary)] border-r-transparent" />
+          <div className="inline-block h-10 w-10 animate-spin rounded-full border-2 border-primary border-r-transparent" />
           <p className="mt-3 text-sm text-slate-600">Loading…</p>
         </div>
       </div>
@@ -215,12 +215,12 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
             {/* LIST */}
             <aside
               className={cx(
-                'h-full min-h-0 border-r border-[color:var(--color-border)] bg-white',
+                'h-full min-h-0 border-r border-border bg-white',
                 mobileMode === 'chat' ? 'hidden sm:block' : 'block'
               )}
             >
               <div className="h-full min-h-0 flex flex-col">
-                <div className="p-4 border-b border-[color:var(--color-border)]">
+                <div className="p-4 border-b border-border">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-slate-900 truncate">Inbox</p>
@@ -231,7 +231,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                     </IconButton>
                   </div>
 
-                  <div className="mt-3 flex items-center gap-2 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-3 py-2.5">
+                  <div className="mt-3 flex items-center gap-2 rounded-xl border border-border bg-surface-2 px-3 py-2.5">
                     <Search className="w-4 h-4 text-slate-500" />
                     <input
                       className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
@@ -242,7 +242,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
 
                 <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2">
                   {filteredThreads.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] p-5">
+                    <div className="rounded-xl border border-dashed border-border bg-surface-2 p-5">
                       <p className="text-sm font-semibold text-slate-900">No conversations yet</p>
                       <p className="mt-1 text-sm text-slate-600">
                         When a patient sends a message, it will appear here.
@@ -265,17 +265,17 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
             {/* CHAT */}
             <section
               className={cx(
-                'h-full min-h-0 flex flex-col bg-[color:var(--color-bg)]',
+                'h-full min-h-0 flex flex-col bg-bg',
                 mobileMode === 'list' ? 'hidden sm:flex' : 'flex'
               )}
             >
               {active ? (
                 <>
-                  <div className="p-4 bg-white border-b border-[color:var(--color-border)]">
+                  <div className="p-4 bg-white border-b border-border">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <button
-                          className="sm:hidden grid h-10 w-10 place-items-center rounded-xl border border-[color:var(--color-border)] bg-white"
+                          className="sm:hidden grid h-10 w-10 place-items-center rounded-xl border border-border bg-white"
                           onClick={() => setMobileMode('list')}
                           aria-label="Back"
                         >
@@ -312,8 +312,8 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                                 className={cx(
                                   'inline-block rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
                                   isOwn
-                                    ? 'bg-[color:var(--color-primary)] text-white'
-                                    : 'bg-white border border-[color:var(--color-border)] text-slate-900'
+                                    ? 'bg-primary text-white'
+                                    : 'bg-light-gray border border-border text-slate-900'
                                 )}
                               >
                                 {msg.body ? msg.body : null}
@@ -331,7 +331,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                                           'inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm',
                                           isOwn
                                             ? 'border-white/25 bg-white/10 text-white hover:bg-white/15'
-                                            : 'border-[color:var(--color-border)] bg-white text-[color:var(--color-primary)] hover:bg-[color:var(--color-surface-2)]'
+                                            : 'border-border bg-light-gray text-dark hover:bg-surface-2'
                                         )}
                                         href={publicAssetUrl(msg.fileUrl)}
                                         target="_blank"
@@ -353,10 +353,10 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                     </div>
                   </div>
 
-                  <div className="p-4 bg-white border-t border-[color:var(--color-border)]">
+                  <div className="p-4 bg-white border-t border-border">
                     <form onSubmit={send} className="flex items-end gap-3">
                       <label
-                        className="grid h-12 w-12 place-items-center rounded-xl border border-[color:var(--color-border)] bg-white hover:bg-[color:var(--color-surface-2)] cursor-pointer"
+                        className="grid h-12 w-12 place-items-center rounded-xl border border-border bg-white hover:bg-surface-2 cursor-pointer"
                         title="Attach file"
                       >
                         <input
@@ -371,7 +371,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                         <Paperclip className="w-5 h-5 text-slate-700" />
                       </label>
 
-                      <div className="flex-1 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-4 py-3">
+                      <div className="flex-1 rounded-2xl border border-border bg-surface-2 px-4 py-3">
                         <input
                           value={messageText}
                           onChange={(e) => setMessageText(e.target.value)}
@@ -386,8 +386,8 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                         disabled={!messageText.trim() || sendMutation.isPending}
                         className={cx(
                           'grid h-12 w-12 place-items-center rounded-xl',
-                          'bg-[color:var(--color-primary)] text-white shadow-sm',
-                          'hover:bg-[color:var(--color-primary-dark)] active:translate-y-[0.5px]',
+                          'bg-primary text-white shadow-sm',
+                          'hover:bg-primary-dark active:translate-y-[0.5px]',
                           'disabled:opacity-50'
                         )}
                         aria-label="Send"

@@ -21,10 +21,10 @@ const Header = ({ currentUser }: { currentUser: User }) => {
   const mode = loc.pathname.startsWith('/therapist') ? 'Therapist' : 'Patient';
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[color:var(--color-border)] bg-white">
+    <header className="sticky top-0 z-50 border-b border-border bg-white">
       <Container className="h-14 flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-9 w-9 rounded-xl bg-[color:var(--color-primary)] text-white grid place-items-center text-sm font-bold shadow-sm">
+          <div className="h-9 w-9 rounded-xl bg-primary text-white grid place-items-center text-sm font-bold shadow-sm">
             TC
           </div>
           <div className="min-w-0">
@@ -42,8 +42,8 @@ const Header = ({ currentUser }: { currentUser: User }) => {
               className={cx(
                 'rounded-xl border px-3 py-2 text-sm font-semibold',
                 loc.pathname.startsWith('/patient')
-                  ? 'border-[color:var(--color-primary)] bg-[color:var(--color-surface-2)]'
-                  : 'border-[color:var(--color-border)] bg-white'
+                  ? 'border-primary bg-surface-2'
+                  : 'border-border bg-white'
               )}
             >
               Patient
@@ -53,8 +53,8 @@ const Header = ({ currentUser }: { currentUser: User }) => {
               className={cx(
                 'rounded-xl border px-3 py-2 text-sm font-semibold',
                 loc.pathname.startsWith('/therapist')
-                  ? 'border-[color:var(--color-primary)] bg-[color:var(--color-surface-2)]'
-                  : 'border-[color:var(--color-border)] bg-white'
+                  ? 'border-primary bg-surface-2'
+                  : 'border-border bg-white'
               )}
             >
               Therapist
@@ -86,13 +86,13 @@ function Home() {
           <div className="mt-5 grid gap-3">
             <Link
               to="/patient"
-              className="rounded-xl border border-[color:var(--color-border)] bg-white hover:bg-[color:var(--color-surface-2)] px-4 py-3 text-sm font-semibold"
+              className="rounded-xl border border-border bg-white hover:bg-surface-2 px-4 py-3 text-sm font-semibold"
             >
               Patient view → /patient
             </Link>
             <Link
               to="/therapist"
-              className="rounded-xl border border-[color:var(--color-border)] bg-white hover:bg-[color:var(--color-surface-2)] px-4 py-3 text-sm font-semibold"
+              className="rounded-xl border border-border bg-white hover:bg-surface-2 px-4 py-3 text-sm font-semibold"
             >
               Therapist view → /therapist
             </Link>

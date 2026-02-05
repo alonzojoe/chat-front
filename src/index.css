@@ -6,9 +6,9 @@
     "Segoe UI Emoji";
 
   /* Violet brand */
-  --color-primary: #6d5efc;
-  --color-primary-dark: #4c3df0;
-
+  --color-primary: #A8A2D7;
+  --color-primary-dark: #746BBF;
+  --color-light-gray: #EAEAEB;
   /* Light UI surfaces (Discord/WhatsApp-ish) */
   --color-bg: #f6f7fb;
   --color-surface: #ffffff;
@@ -19,9 +19,15 @@
   --color-muted: #64748b;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
-html, body, #root { height: 100%; }
+html,
+body,
+#root {
+  height: 100%;
+}
 
 body {
   margin: 0;
@@ -33,12 +39,22 @@ body {
 }
 
 /* nicer scrollbars */
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 ::-webkit-scrollbar-thumb {
   background: rgba(15, 23, 42, 0.18);
   border-radius: 999px;
   border: 3px solid transparent;
   background-clip: padding-box;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(15, 23, 42, 0.26); }
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.26);
+}

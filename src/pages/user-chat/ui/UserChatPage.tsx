@@ -37,7 +37,7 @@ const Avatar: React.FC<{ name: string; image?: string; size?: number; ring?: boo
       className={cx(
         'shrink-0 rounded-full bg-slate-200 text-slate-700 grid place-items-center overflow-hidden',
         ring
-          ? 'ring-2 ring-[color:var(--color-primary)] ring-offset-2 ring-offset-white'
+          ? 'ring-2 ring-primary ring-offset-2 ring-offset-white'
           : 'ring-1 ring-slate-200'
       )}
       style={{ width: size, height: size }}
@@ -151,7 +151,7 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
     return (
       <div className="h-full grid place-items-center px-6">
         <div className="text-center">
-          <div className="inline-block h-10 w-10 animate-spin rounded-full border-2 border-[color:var(--color-primary)] border-r-transparent" />
+          <div className="inline-block h-10 w-10 animate-spin rounded-full border-2 border-primary border-r-transparent" />
           <p className="mt-3 text-sm text-slate-600">Loading…</p>
         </div>
       </div>
@@ -173,9 +173,9 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
     <div className="h-full w-full">
       <Container className="h-full py-4 sm:py-6">
         <Card className="h-[calc(100vh-88px)] min-h-[640px] overflow-hidden">
-          <div className="h-full flex flex-col bg-[color:var(--color-bg)]">
+          <div className="h-full flex flex-col bg-bg">
             {/* Header */}
-            <div className="p-4 bg-white border-b border-[color:var(--color-border)]">
+            <div className="p-4 bg-white border-b border-border">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <Avatar name={headerTitle} size={42} ring />
@@ -201,8 +201,8 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
                       className={cx(
                         'shrink-0 rounded-xl border px-3 py-2 text-xs font-semibold',
                         t.appointmentId === active?.appointmentId
-                          ? 'border-[color:var(--color-primary)] bg-[color:var(--color-surface-2)]'
-                          : 'border-[color:var(--color-border)] bg-white'
+                          ? 'border-primary bg-surface-2'
+                          : 'border-border bg-white'
                       )}
                       onClick={() => openThread(t)}
                     >
@@ -231,8 +231,8 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
                           className={cx(
                             'inline-block rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
                             isOwn
-                              ? 'bg-[color:var(--color-primary)] text-white'
-                              : 'bg-white border border-[color:var(--color-border)] text-slate-900'
+                              ? 'bg-primary text-white'
+                              : 'bg-light-gray border border-border text-slate-900'
                           )}
                         >
                           {msg.body ? msg.body : null}
@@ -250,7 +250,7 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
                                     'inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm',
                                     isOwn
                                       ? 'border-white/25 bg-white/10 text-white hover:bg-white/15'
-                                      : 'border-[color:var(--color-border)] bg-white text-[color:var(--color-primary)] hover:bg-[color:var(--color-surface-2)]'
+                                      : 'border-border bg-white text-primary hover:bg-surface-2'
                                   )}
                                   href={publicAssetUrl(msg.fileUrl)}
                                   target="_blank"
@@ -274,10 +274,10 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
             </div>
 
             {/* Composer */}
-            <div className="p-4 bg-white border-t border-[color:var(--color-border)]">
+            <div className="p-4 bg-white border-t border-border">
               <form onSubmit={send} className="flex items-end gap-3">
                 <label
-                  className="grid h-12 w-12 place-items-center rounded-xl border border-[color:var(--color-border)] bg-white hover:bg-[color:var(--color-surface-2)] cursor-pointer"
+                  className="grid h-12 w-12 place-items-center rounded-xl border border-border bg-white hover:bg-surface-2 cursor-pointer"
                   title="Attach file"
                 >
                   <input
@@ -292,7 +292,7 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
                   <Paperclip className="w-5 h-5 text-slate-700" />
                 </label>
 
-                <div className="flex-1 rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] px-4 py-3">
+                <div className="flex-1 rounded-2xl border border-border bg-surface-2 px-4 py-3">
                   <input
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
@@ -306,8 +306,8 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
                   disabled={!messageText.trim() || sendMutation.isPending}
                   className={cx(
                     'grid h-12 w-12 place-items-center rounded-xl',
-                    'bg-[color:var(--color-primary)] text-white shadow-sm',
-                    'hover:bg-[color:var(--color-primary-dark)] active:translate-y-[0.5px]',
+                    'bg-primary text-white shadow-sm',
+                    'hover:bg-primary-dark active:translate-y-[0.5px]',
                     'disabled:opacity-50'
                   )}
                   aria-label="Send"
