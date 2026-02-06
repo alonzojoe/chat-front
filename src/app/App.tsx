@@ -4,7 +4,8 @@ import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { UserChatPage } from '../pages/user-chat/ui/UserChatPage';
 import { TherapistChatPage } from '../pages/therapist-chat/ui/TherapistChatPage';
 import type { User } from '../shared/types/chat';
-import { Card, Container, IconButton, Pill, PrimaryButton, cx } from '../shared/ui/Ui';
+import { Card, Container, IconButton, Pill, PrimaryButton } from '../shared/ui/Ui';
+import { cn } from '../lib/utils';
 
 // Demo mapping (matches backend seed.sql)
 const DEMO = {
@@ -52,7 +53,7 @@ const Header = ({ currentUser }: { currentUser: User }) => {
           <div className="hidden sm:flex items-center gap-2">
             <Link
               to="/patient/patient_1"
-              className={cx(
+              className={cn(
                 'rounded-xl border px-3 py-2 text-sm font-semibold',
                 loc.pathname.startsWith('/patient')
                   ? 'border-primary bg-surface-2'
@@ -63,7 +64,7 @@ const Header = ({ currentUser }: { currentUser: User }) => {
             </Link>
             <Link
               to="/therapist"
-              className={cx(
+              className={cn(
                 'rounded-xl border px-3 py-2 text-sm font-semibold',
                 loc.pathname.startsWith('/therapist')
                   ? 'border-primary bg-surface-2'

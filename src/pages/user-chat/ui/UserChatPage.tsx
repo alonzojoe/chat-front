@@ -6,7 +6,8 @@ import type { User } from '../../../shared/types/chat';
 import { publicAssetUrl, type AppointmentSummary, type ChatMessage } from '../../../shared/api/chatApi';
 import { useAppointments, useMessages, useSendMessage, useUploadFile } from '../../../shared/api/chatQueries';
 import { createChatSocket } from '../../../shared/api/chatSocket';
-import { Card, Container, IconButton, cx } from '../../../shared/ui/Ui';
+import { Card, Container, IconButton } from '../../../shared/ui/Ui';
+import { cn } from '../../../lib/utils';
 
 interface UserChatProps {
   currentUser: User; // not used yet (kept for later auth integration)
@@ -34,7 +35,7 @@ const Avatar: React.FC<{ name: string; image?: string; size?: number; ring?: boo
 
   return (
     <div
-      className={cx(
+      className={cn(
         'shrink-0 rounded-full bg-slate-200 text-slate-700 grid place-items-center overflow-hidden',
         ring
           ? 'ring-2 ring-primary ring-offset-2 ring-offset-white'
@@ -198,7 +199,7 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
                   {threads.map((t) => (
                     <button
                       key={t.appointmentId}
-                      className={cx(
+                      className={cn(
                         'shrink-0 rounded-xl border px-3 py-2 text-xs font-semibold',
                         t.appointmentId === active?.appointmentId
                           ? 'border-primary bg-surface-2'
@@ -222,14 +223,14 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
                   return (
                     <div
                       key={msg.id}
-                      className={cx('flex items-end gap-2', isOwn ? 'justify-end' : 'justify-start')}
+                      className={cn('flex items-end gap-2', isOwn ? 'justify-end' : 'justify-start')}
                     >
                       {!isOwn ? <Avatar name={therapistName} size={28} /> : null}
 
-                      <div className={cx('max-w-[78%]', isOwn ? 'text-right' : 'text-left')}>
+                      <div className={cn('max-w-[78%]', isOwn ? 'text-right' : 'text-left')}>
                         <div
-                          className={cx(
-                            'inline-block rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
+                          className={cn(
+                            'inline-block rounded-lg p-2.5 text-sm leading-relaxed',
                             isOwn
                               ? 'bg-primary text-white'
                               : 'bg-light-gray border border-border text-slate-900'
@@ -237,7 +238,7 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
                         >
                           {msg.body ? msg.body : null}
                           {msg.fileUrl ? (
-                            <div className={cx('mt-2', isOwn ? 'text-white/90' : 'text-slate-700')}>
+                            <div className={cn('mt-2', isOwn ? 'text-white/90' : 'text-slate-700')}>
                               {msg.fileType?.startsWith('image/') ? (
                                 <ModalImage
                                   small={publicAssetUrl(msg.fileUrl)}
@@ -248,7 +249,7 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
                                 />
                               ) : (
                                 <a
-                                  className={cx(
+                                  className={cn(
                                     'inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm',
                                     isOwn
                                       ? 'border-white/25 bg-white/10 text-white hover:bg-white/15'
@@ -265,7 +266,6 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
                             </div>
                           ) : null}
                         </div>
-                        <div className={cx('mt-1 text-[11px] text-slate-500')}>{formatClock(msg.createdAt)}</div>
                       </div>
                     </div>
                   );
@@ -306,7 +306,7 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
                 <button
                   type="submit"
                   disabled={!messageText.trim() || sendMutation.isPending}
-                  className={cx(
+                  className={cn(
                     'grid h-12 w-12 place-items-center rounded-xl',
                     'bg-primary text-white shadow-sm',
                     'hover:bg-primary-dark active:translate-y-[0.5px]',

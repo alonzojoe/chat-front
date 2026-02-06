@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, FileText, Info, Paperclip, Plus, Search, Send } from 'lucide-react';
+import { ArrowLeft, FileText, Paperclip, Search, Send } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import ModalImage from "react-modal-image";
 
@@ -7,7 +7,8 @@ import type { User } from '../../../shared/types/chat';
 import { publicAssetUrl, type AppointmentSummary, type ChatMessage } from '../../../shared/api/chatApi';
 import { useAppointments, useMessages, useMarkRead, useSendMessage, useUploadFile } from '../../../shared/api/chatQueries';
 import { createChatSocket } from '../../../shared/api/chatSocket';
-import { Card, Container, IconButton, cx } from '../../../shared/ui/Ui';
+import { Card, Container } from '../../../shared/ui/Ui';
+import { cn } from '../../../lib/utils';
 
 interface TherapistChatProps {
   currentUser: User; // not used yet (kept for later auth integration)
@@ -35,7 +36,7 @@ const Avatar: React.FC<{ name: string; image?: string; size?: number; ring?: boo
 
   return (
     <div
-      className={cx(
+      className={cn(
         'shrink-0 rounded-full bg-slate-200 text-slate-700 grid place-items-center overflow-hidden',
         ring
           ? 'ring-2 ring-primary ring-offset-2 ring-offset-white'
@@ -64,8 +65,8 @@ const ChatListItem: React.FC<{
   return (
     <button
       onClick={onClick}
-      className={cx(
-        'w-full text-left rounded-xl border px-3.5 py-3 transition',
+      className={cn(
+        'w-full text-left px-3.5 py-3 transition',
         'border-border bg-white',
         'hover:bg-surface-2',
         active && 'bg-surface-2'
@@ -256,7 +257,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
 
             {/* INBOX*/}
             <aside
-              className={cx(
+              className={cn(
                 'h-full min-h-0 border-l border-border bg-white',
                 mobileMode === 'chat' ? 'hidden sm:block' : 'block'
               )}
@@ -268,21 +269,18 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                       <p className="text-sm font-semibold text-slate-900 truncate">Inbox</p>
                       <p className="text-xs text-slate-500 truncate">All messages</p>
                     </div>
-                    <IconButton aria-label="New conversation" title="Prototype">
-                      <Plus className="w-4 h-4" />
-                    </IconButton>
                   </div>
 
                   <div className="mt-3 flex items-center gap-2 rounded-xl border border-border bg-surface-2 px-3 py-2.5">
                     <Search className="w-4 h-4 text-slate-500" />
                     <input
                       className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
-                      placeholder="Search messages (prototype)"
+                      placeholder="Search messages"
                     />
                   </div>
                 </div>
 
-                <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2">
+                <div className="flex-1 min-h-0 overflow-y-auto p-3">
                   {filteredThreads.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border bg-surface-2 p-5">
                       <p className="text-sm font-semibold text-slate-900">No conversations yet</p>
@@ -307,7 +305,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
 
             {/* CHAT */}
             <section
-              className={cx(
+              className={cn(
                 'h-full min-h-0 flex flex-col bg-bg',
                 mobileMode === 'list' ? 'hidden sm:flex' : 'flex'
               )}
@@ -330,12 +328,6 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                           <p className="text-xs text-slate-500 truncate">Appt #{active.appointmentId}</p>
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-2">
-                        <IconButton aria-label="Info">
-                          <Info className="w-4 h-4" />
-                        </IconButton>
-                      </div>
                     </div>
                   </div>
 
@@ -346,14 +338,14 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                         return (
                           <div
                             key={msg.id}
-                            className={cx('flex items-end gap-2', isOwn ? 'justify-end' : 'justify-start')}
+                            className={cn('flex items-end gap-2', isOwn ? 'justify-end' : 'justify-start')}
                           >
                             {!isOwn ? <Avatar name={active.patientName} size={28} /> : null}
 
-                            <div className={cx('max-w-[78%]', isOwn ? 'text-right' : 'text-left')}>
+                            <div className={cn('max-w-[78%]', isOwn ? 'text-right' : 'text-left')}>
                               <div
-                                className={cx(
-                                  'inline-block rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
+                                className={cn(
+                                  'inline-block rounded-lg p-2.5 text-sm leading-relaxed',
                                   isOwn
                                     ? 'bg-primary text-white'
                                     : 'bg-light-gray border border-border text-slate-900'
@@ -361,7 +353,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                               >
                                 {msg.body ? msg.body : null}
                                 {msg.fileUrl ? (
-                                  <div className={cx('mt-2', isOwn ? 'text-white/90' : 'text-slate-700')}>
+                                  <div className={cn('mt-2', isOwn ? 'text-white/90' : 'text-slate-700')}>
                                     {msg.fileType?.startsWith('image/') ? (
                                       <ModalImage
                                         small={publicAssetUrl(msg.fileUrl)}
@@ -372,7 +364,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                                       />
                                     ) : (
                                       <a
-                                        className={cx(
+                                        className={cn(
                                           'inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm',
                                           isOwn
                                             ? 'border-white/25 bg-white/10 text-white hover:bg-white/15'
@@ -389,7 +381,6 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                                   </div>
                                 ) : null}
                               </div>
-                              <div className="mt-1 text-[11px] text-slate-500">{formatClock(msg.createdAt)}</div>
                             </div>
                           </div>
                         );
@@ -429,7 +420,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                       <button
                         type="submit"
                         disabled={!messageText.trim() || sendMutation.isPending}
-                        className={cx(
+                        className={cn(
                           'grid h-12 w-12 place-items-center rounded-xl',
                           'bg-primary text-white shadow-sm',
                           'hover:bg-primary-dark active:translate-y-[0.5px]',
@@ -490,7 +481,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                                 return (
                                   <div
                                     key={m.id}
-                                    className={cx(
+                                    className={cn(
                                       'aspect-square rounded-[6px] border border-border bg-white overflow-hidden',
                                       'hover:bg-surface-2'
                                     )}
