@@ -471,17 +471,54 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
 
                       <div className="mt-6 border-t border-border pt-5">
                         <p className="text-sm font-semibold text-slate-900">Media</p>
-                        <div className="mt-3 grid grid-cols-3 gap-2">
-                          {Array.from({ length: 6 }).map((_, i) => (
-                            <div
-                              key={i}
-                              className="aspect-square rounded-xl border border-border bg-surface-2 grid place-items-center text-slate-500"
-                              title="Mock media"
-                            >
-                              <Paperclip className="w-4 h-4" />
-                            </div>
-                          ))}
-                        </div>
+
+                        {messages.filter((m) => Boolean(m.fileUrl)).length === 0 ? (
+                          <div className="mt-3 rounded-xl border border-dashed border-border bg-surface-2 p-4">
+                            <p className="text-sm text-slate-600">No media available</p>
+                          </div>
+                        ) : (
+                          <div className="mt-3 grid grid-cols-3 gap-2">
+                            {messages
+                              .filter((m) => Boolean(m.fileUrl))
+                              .slice()
+                              .reverse()
+                              .slice(0, 12)
+                              .map((m) => {
+                                const isImage = Boolean(m.fileType?.startsWith('image/'));
+                                const url = m.fileUrl ? publicAssetUrl(m.fileUrl) : '';
+
+                                return (
+                                  <a
+                                    key={m.id}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className={cx(
+                                      'aspect-square rounded-xl border border-border bg-white overflow-hidden',
+                                      'hover:bg-surface-2'
+                                    )}
+                                    title={m.fileName || (isImage ? 'Image' : 'Attachment')}
+                                  >
+                                    {isImage ? (
+                                      <img
+                                        src={url}
+                                        alt={m.fileName || 'Image'}
+                                        className="w-full h-full object-cover"
+                                        loading="lazy"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full p-2 flex flex-col items-center justify-center gap-2 text-center">
+                                        <FileText className="w-5 h-5 text-slate-600" />
+                                        <span className="text-[11px] text-slate-700 font-medium w-full truncate">
+                                          {m.fileName || 'Document'}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </a>
+                                );
+                              })}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
