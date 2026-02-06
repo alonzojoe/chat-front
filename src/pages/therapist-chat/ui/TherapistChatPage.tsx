@@ -488,11 +488,8 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                                 const url = m.fileUrl ? publicAssetUrl(m.fileUrl) : '';
 
                                 return (
-                                  <a
+                                  <div
                                     key={m.id}
-                                    href={url}
-                                    target="_blank"
-                                    rel="noreferrer"
                                     className={cx(
                                       'aspect-square rounded-xl border border-border bg-white overflow-hidden',
                                       'hover:bg-surface-2'
@@ -500,21 +497,27 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                                     title={m.fileName || (isImage ? 'Image' : 'Attachment')}
                                   >
                                     {isImage ? (
-                                      <img
-                                        src={url}
-                                        alt={m.fileName || 'Image'}
+                                      <ModalImage
+                                        small={url}
+                                        large={url}
                                         className="w-full h-full object-cover"
-                                        loading="lazy"
+                                        hideDownload={false}
+                                        hideZoom={true}
                                       />
                                     ) : (
-                                      <div className="w-full h-full p-2 flex flex-col items-center justify-center gap-2 text-center">
+                                      <a
+                                        href={url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="w-full h-full p-2 flex flex-col items-center justify-center gap-2 text-center"
+                                      >
                                         <FileText className="w-5 h-5 text-slate-600" />
                                         <span className="text-[11px] text-slate-700 font-medium w-full truncate">
                                           {m.fileName || 'Document'}
                                         </span>
-                                      </div>
+                                      </a>
                                     )}
-                                  </a>
+                                  </div>
                                 );
                               })}
                           </div>
