@@ -8,19 +8,19 @@ import {
 } from './chatApi';
 
 export const chatKeys = {
-  appointments: (role: ActorRole, actorId: number) => ['appointments', role, actorId] as const,
-  messages: (role: ActorRole, actorId: number, appointmentId: number) =>
+  appointments: (role: ActorRole, actorId: string) => ['appointments', role, actorId] as const,
+  messages: (role: ActorRole, actorId: string, appointmentId: number) =>
     ['messages', role, actorId, appointmentId] as const,
 };
 
-export function useAppointments(role: ActorRole, actorId: number) {
+export function useAppointments(role: ActorRole, actorId: string) {
   return useQuery({
     queryKey: chatKeys.appointments(role, actorId),
     queryFn: () => listAppointments({ role, actorId }),
   });
 }
 
-export function useMessages(role: ActorRole, actorId: number, appointmentId: number | null) {
+export function useMessages(role: ActorRole, actorId: string, appointmentId: number | null) {
   return useQuery({
     queryKey: appointmentId ? chatKeys.messages(role, actorId, appointmentId) : ['messages', role, actorId, 'none'],
     queryFn: () => {

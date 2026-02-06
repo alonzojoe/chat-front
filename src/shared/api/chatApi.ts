@@ -4,21 +4,23 @@ export type ActorRole = 'patient' | 'therapist';
 
 export type AppointmentSummary = {
   appointmentId: number;
-  patientId: number;
+  mongoAppointmentId?: string | null;
+  patientId: string;
   patientName: string;
-  therapistId: number;
+  therapistId: string;
   therapistName: string;
   startsAt: string;
   status: string;
   lastMessage: string | null;
   lastMessageAt: string | null;
+  unreadCount?: number;
 };
 
 export type ChatMessage = {
   id: number;
   appointmentId: number;
   senderRole: ActorRole;
-  senderId: number;
+  senderId: string;
   body: string | null;
   fileUrl: string | null;
   fileName: string | null;
@@ -26,14 +28,14 @@ export type ChatMessage = {
   createdAt: string;
 };
 
-export async function listAppointments(input: { role: ActorRole; actorId: number }) {
+export async function listAppointments(input: { role: ActorRole; actorId: string }) {
   const { data } = await http.get<{ appointments: AppointmentSummary[] }>('/api/appointments', {
     params: input,
   });
   return data.appointments || [];
 }
 
-export async function listMessages(input: { role: ActorRole; actorId: number; appointmentId: number }) {
+export async function listMessages(input: { role: ActorRole; actorId: string; appointmentId: number }) {
   const { data } = await http.get<{ messages: ChatMessage[] }>('/api/chat/messages', {
     params: input,
   });
@@ -42,7 +44,7 @@ export async function listMessages(input: { role: ActorRole; actorId: number; ap
 
 export async function sendTextMessage(input: {
   role: ActorRole;
-  actorId: number;
+  actorId: string;
   appointmentId: number;
   body: string;
 }) {
@@ -52,7 +54,7 @@ export async function sendTextMessage(input: {
 
 export async function uploadFile(input: {
   role: ActorRole;
-  actorId: number;
+  actorId: string;
   appointmentId: number;
   file: File;
 }) {

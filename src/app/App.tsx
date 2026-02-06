@@ -8,10 +8,10 @@ import { Card, Container, IconButton, Pill, PrimaryButton, cx } from '../shared/
 
 // Demo mapping (matches backend seed.sql)
 const DEMO = {
-  patient: { id: 'user_001', name: 'John Doe', email: 'john@example.com', role: 'user' as const },
-  therapist: { id: 'therapist_001', name: 'Dr. Sarah Johnson', email: 'sarah@example.com', role: 'therapist' as const },
-  patientActorId: 1,
-  therapistActorId: 10,
+  patient: { id: 'patient_1', name: 'John Doe', email: 'john@example.com', role: 'user' as const },
+  therapist: { id: 'therapist_10', name: 'Dr. Sarah Johnson', email: 'sarah@example.com', role: 'therapist' as const },
+  patientActorId: 'patient_1',
+  therapistActorId: 'therapist_10',
 };
 
 const Header = ({ currentUser }: { currentUser: User }) => {

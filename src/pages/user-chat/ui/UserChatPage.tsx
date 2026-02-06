@@ -10,7 +10,7 @@ import { Card, Container, IconButton, cx } from '../../../shared/ui/Ui';
 
 interface UserChatProps {
   currentUser: User; // not used yet (kept for later auth integration)
-  actorId: number; // numeric id used by backend prototype
+  actorId: string; // MongoDB/external id
 }
 
 const formatClock = (date: string | undefined) => {
