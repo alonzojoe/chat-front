@@ -13,10 +13,12 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-query": "^5.90.20",
+    "@types/react-modal-image": "^2.6.4",
     "axios": "^1.13.4",
     "lucide-react": "^0.563.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-modal-image": "^2.6.0",
     "react-router-dom": "^7.13.0",
     "socket.io-client": "^4.8.3"
   },
