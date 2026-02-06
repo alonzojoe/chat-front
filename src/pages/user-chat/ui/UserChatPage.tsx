@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FileText, Info, Paperclip, Send } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
-
+import ModalImage from "react-modal-image";
 import type { User } from '../../../shared/types/chat';
 import { publicAssetUrl, type AppointmentSummary, type ChatMessage } from '../../../shared/api/chatApi';
 import { useAppointments, useMessages, useSendMessage, useUploadFile } from '../../../shared/api/chatQueries';
@@ -239,10 +239,12 @@ export const UserChatPage: React.FC<UserChatProps> = ({ actorId }) => {
                           {msg.fileUrl ? (
                             <div className={cx('mt-2', isOwn ? 'text-white/90' : 'text-slate-700')}>
                               {msg.fileType?.startsWith('image/') ? (
-                                <img
-                                  className="mt-2 max-w-[240px] rounded-xl"
-                                  src={publicAssetUrl(msg.fileUrl)}
-                                  alt={msg.fileName || 'image'}
+                                <ModalImage
+                                  small={publicAssetUrl(msg.fileUrl)}
+                                  large={publicAssetUrl(msg.fileUrl)}
+                                  className="mt-2 max-w-60 rounded-xl object-cover max-h-60"
+                                  hideDownload={false}
+                                  hideZoom={true}
                                 />
                               ) : (
                                 <a
