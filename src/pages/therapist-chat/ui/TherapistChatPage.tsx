@@ -112,11 +112,11 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
   const apptsQuery = useAppointments('therapist', actorId);
   const threads = apptsQuery.data ?? [];
 
+  // Do NOT auto-select a conversation on load (therapist starts with no active thread).
   useEffect(() => {
-    if (!active && threads.length > 0) {
-      activeAppointmentIdRef.current = threads[0].appointmentId;
-      setActive(threads[0]);
-      setMobileMode('chat');
+    // when threads load, keep list view on mobile
+    if (threads.length > 0 && mobileMode !== 'list' && !active) {
+      setMobileMode('list');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threads.length]);
