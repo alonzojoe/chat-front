@@ -491,7 +491,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                                   <div
                                     key={m.id}
                                     className={cx(
-                                      'aspect-square rounded-xl border border-border bg-white overflow-hidden',
+                                      'aspect-square rounded-[6px] border border-border bg-white overflow-hidden',
                                       'hover:bg-surface-2'
                                     )}
                                     title={m.fileName || (isImage ? 'Image' : 'Attachment')}
@@ -511,7 +511,7 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
                                         rel="noreferrer"
                                         className="w-full h-full p-2 flex flex-col items-center justify-center gap-2 text-center"
                                       >
-                                        <FileText className="w-5 h-5 text-slate-600" />
+                                        <FileText className="w-10 h-10 text-primary" />
                                         <span className="text-[11px] text-slate-700 font-medium w-full truncate">
                                           {m.fileName || 'Document'}
                                         </span>
