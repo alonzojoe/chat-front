@@ -65,7 +65,15 @@ export const TherapistChatPage = ({ actorId }: TherapistChatProps) => {
       <Container className="h-full py-4 sm:py-6">
         <Card className="h-[calc(100vh-88px)] min-h-[640px] overflow-hidden">
           <div className="h-full min-h-0 grid sm:grid-cols-[320px_1fr_360px]">
-            <PatientInfoPanel active={active} messages={messages} />
+
+
+            <InboxPanel
+              threads={threads}
+              activeAppointmentId={activeAppointmentId}
+              onOpenThread={openThread}
+              formatClock={formatClock}
+              hidden={mobileMode === 'chat'}
+            />
 
             <section className={cn('h-full min-h-0 flex flex-col bg-bg', mobileMode === 'list' ? 'hidden sm:flex' : 'flex')}>
               {active ? (
@@ -103,13 +111,8 @@ export const TherapistChatPage = ({ actorId }: TherapistChatProps) => {
               )}
             </section>
 
-            <InboxPanel
-              threads={threads}
-              activeAppointmentId={activeAppointmentId}
-              onOpenThread={openThread}
-              formatClock={formatClock}
-              hidden={mobileMode === 'chat'}
-            />
+            <PatientInfoPanel active={active} messages={messages} />
+
           </div>
         </Card>
       </Container>

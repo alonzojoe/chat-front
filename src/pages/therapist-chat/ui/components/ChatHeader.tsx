@@ -1,4 +1,4 @@
-import { ArrowLeft, Info } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 import type { AppointmentSummary } from '../../../../shared/api/chatApi';
 import { IconButton } from '../../../../shared/ui/Ui';
@@ -26,12 +26,6 @@ export const ChatHeader = ({ active, onBackMobile }: ChatHeaderProps) => {
             <p className="text-sm font-semibold text-slate-900 truncate">{active.patientName}</p>
             <p className="text-xs text-slate-500 truncate">Appt #{active.appointmentId}</p>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <IconButton aria-label="Info">
-            <Info className="w-4 h-4" />
-          </IconButton>
         </div>
       </div>
     </div>

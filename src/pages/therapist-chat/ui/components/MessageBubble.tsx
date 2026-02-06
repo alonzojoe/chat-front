@@ -11,7 +11,7 @@ type MessageBubbleProps = {
   timeLabel: string;
 };
 
-export const MessageBubble = ({ message, isOwn, sideAvatar, timeLabel }: MessageBubbleProps) => {
+export const MessageBubble = ({ message, isOwn, sideAvatar }: MessageBubbleProps) => {
   return (
     <div className={cn('flex items-end gap-2', isOwn ? 'justify-end' : 'justify-start')}>
       {!isOwn ? sideAvatar : null}
@@ -19,7 +19,7 @@ export const MessageBubble = ({ message, isOwn, sideAvatar, timeLabel }: Message
       <div className={cn('max-w-[78%]', isOwn ? 'text-right' : 'text-left')}>
         <div
           className={cn(
-            'inline-block rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
+            'inline-block rounded-lg p-2.5 text-sm leading-relaxed',
             isOwn ? 'bg-primary text-white' : 'bg-light-gray border border-border text-slate-900'
           )}
         >
@@ -54,7 +54,6 @@ export const MessageBubble = ({ message, isOwn, sideAvatar, timeLabel }: Message
             </div>
           ) : null}
         </div>
-        <div className="mt-1 text-[11px] text-slate-500">{timeLabel}</div>
       </div>
     </div>
   );

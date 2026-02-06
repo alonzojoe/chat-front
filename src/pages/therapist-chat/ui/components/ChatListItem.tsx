@@ -16,7 +16,7 @@ export const ChatListItem = ({ info, active, onClick, formatClock }: ChatListIte
     <button
       onClick={onClick}
       className={cn(
-        'w-full text-left rounded-xl border px-3.5 py-3 transition',
+        'w-full text-left px-3.5 py-3 transition',
         'border-border bg-white',
         'hover:bg-surface-2',
         active && 'bg-surface-2'
