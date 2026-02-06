@@ -79,7 +79,7 @@ const ChatListItem: React.FC<{
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-900 truncate">{info.patientName}</p>
-              <p className="mt-0.5 text-sm truncate text-slate-600">{last}</p>
+              <p className="mt-0.5 text-sm truncate text-slate-600 text-ellipsis">{last}</p>
             </div>
 
             <div className="shrink-0 flex flex-col items-end gap-1">
@@ -253,45 +253,57 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
       <Container className="h-full py-4 sm:py-6">
         <Card className="h-[calc(100vh-88px)] min-h-[640px] overflow-hidden">
           <div className="h-full min-h-0 grid sm:grid-cols-[320px_1fr_360px]">
-            {/* PATIENT INFO (mock) */}
-            <aside className="hidden sm:block h-full min-h-0 border-r border-border bg-white">
+
+            {/* INBOX*/}
+            <aside
+              className={cx(
+                'h-full min-h-0 border-l border-border bg-white',
+                mobileMode === 'chat' ? 'hidden sm:block' : 'block'
+              )}
+            >
               <div className="h-full min-h-0 flex flex-col">
-                <div className="p-6 border-b border-border flex flex-col items-center">
-                  <Avatar name={active?.patientName || 'Patient'} size={96} ring />
-                  <p className="mt-3 text-base font-semibold text-slate-900">{active?.patientName || 'Select a chat'}</p>
+                <div className="p-4 border-b border-border">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 truncate">Inbox</p>
+                      <p className="text-xs text-slate-500 truncate">All messages</p>
+                    </div>
+                    <IconButton aria-label="New conversation" title="Prototype">
+                      <Plus className="w-4 h-4" />
+                    </IconButton>
+                  </div>
+
+                  <div className="mt-3 flex items-center gap-2 rounded-xl border border-border bg-surface-2 px-3 py-2.5">
+                    <Search className="w-4 h-4 text-slate-500" />
+                    <input
+                      className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
+                      placeholder="Search messages (prototype)"
+                    />
+                  </div>
                 </div>
 
-                <div className="flex-1 min-h-0 overflow-y-auto">
-                  <div className="p-5">
-                    <p className="text-sm font-semibold text-slate-900">Patient Info</p>
-                    <div className="mt-3 space-y-1.5 text-sm text-slate-700">
-                      <p><span className="text-slate-500">Patient number:</span> 826684619</p>
-                      <p><span className="text-slate-500">Mobile number:</span> +63 917 123 4567</p>
-                      <p><span className="text-slate-500">Email:</span> patient@example.com</p>
-                      <p><span className="text-slate-500">Date of birth:</span> July 18, 1982</p>
-                      <p><span className="text-slate-500">Age:</span> 43</p>
-                      <p><span className="text-slate-500">Gender:</span> Male</p>
-                      <p className="pt-1"><span className="text-slate-500">Address:</span> 17 Carmel View Street, Apt 4B</p>
+                <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2">
+                  {filteredThreads.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-border bg-surface-2 p-5">
+                      <p className="text-sm font-semibold text-slate-900">No conversations yet</p>
+                      <p className="mt-1 text-sm text-slate-600">
+                        When a patient sends a message, it will appear here.
+                      </p>
                     </div>
-
-                    <div className="mt-6 border-t border-border pt-5">
-                      <p className="text-sm font-semibold text-slate-900">Media</p>
-                      <div className="mt-3 grid grid-cols-3 gap-2">
-                        {Array.from({ length: 6 }).map((_, i) => (
-                          <div
-                            key={i}
-                            className="aspect-square rounded-xl border border-border bg-surface-2 grid place-items-center text-slate-500"
-                            title="Mock media"
-                          >
-                            <Paperclip className="w-4 h-4" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                  ) : (
+                    filteredThreads.map((t) => (
+                      <ChatListItem
+                        key={t.appointmentId}
+                        info={t}
+                        active={active?.appointmentId === t.appointmentId}
+                        onClick={() => openThread(t)}
+                      />
+                    ))
+                  )}
                 </div>
               </div>
             </aside>
+
 
             {/* CHAT */}
             <section
@@ -435,55 +447,50 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
               )}
             </section>
 
-            {/* INBOX (right) */}
-            <aside
-              className={cx(
-                'h-full min-h-0 border-l border-border bg-white',
-                mobileMode === 'chat' ? 'hidden sm:block' : 'block'
-              )}
-            >
-              <div className="h-full min-h-0 flex flex-col">
-                <div className="p-4 border-b border-border">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-900 truncate">Inbox</p>
-                      <p className="text-xs text-slate-500 truncate">All messages</p>
-                    </div>
-                    <IconButton aria-label="New conversation" title="Prototype">
-                      <Plus className="w-4 h-4" />
-                    </IconButton>
+            {/* PATIENT INFO (mock) */}
+            {active && (
+              <aside className="hidden sm:block h-full min-h-0 border-r border-border bg-white">
+                <div className="h-full min-h-0 flex flex-col">
+                  <div className="p-6 border-b border-border flex flex-col items-center">
+                    <Avatar name={active?.patientName || 'Patient'} size={96} ring />
+                    <p className="mt-3 text-base font-semibold text-slate-900">{active?.patientName || 'Select a chat'}</p>
                   </div>
 
-                  <div className="mt-3 flex items-center gap-2 rounded-xl border border-border bg-surface-2 px-3 py-2.5">
-                    <Search className="w-4 h-4 text-slate-500" />
-                    <input
-                      className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-500"
-                      placeholder="Search messages (prototype)"
-                    />
+                  <div className="flex-1 min-h-0 overflow-y-auto">
+                    <div className="p-5">
+                      <p className="text-sm font-semibold text-slate-900">Patient Info</p>
+                      <div className="mt-3 space-y-1.5 text-sm text-slate-700">
+                        <p><span className="text-slate-500">Patient number:</span> 826684619</p>
+                        <p><span className="text-slate-500">Mobile number:</span> +63 917 123 4567</p>
+                        <p><span className="text-slate-500">Email:</span> patient@example.com</p>
+                        <p><span className="text-slate-500">Date of birth:</span> July 18, 1982</p>
+                        <p><span className="text-slate-500">Age:</span> 43</p>
+                        <p><span className="text-slate-500">Gender:</span> Male</p>
+                        <p className="pt-1"><span className="text-slate-500">Address:</span> 17 Carmel View Street, Apt 4B</p>
+                      </div>
+
+                      <div className="mt-6 border-t border-border pt-5">
+                        <p className="text-sm font-semibold text-slate-900">Media</p>
+                        <div className="mt-3 grid grid-cols-3 gap-2">
+                          {Array.from({ length: 6 }).map((_, i) => (
+                            <div
+                              key={i}
+                              className="aspect-square rounded-xl border border-border bg-surface-2 grid place-items-center text-slate-500"
+                              title="Mock media"
+                            >
+                              <Paperclip className="w-4 h-4" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
+              </aside>
+            )}
 
-                <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2">
-                  {filteredThreads.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-border bg-surface-2 p-5">
-                      <p className="text-sm font-semibold text-slate-900">No conversations yet</p>
-                      <p className="mt-1 text-sm text-slate-600">
-                        When a patient sends a message, it will appear here.
-                      </p>
-                    </div>
-                  ) : (
-                    filteredThreads.map((t) => (
-                      <ChatListItem
-                        key={t.appointmentId}
-                        info={t}
-                        active={active?.appointmentId === t.appointmentId}
-                        onClick={() => openThread(t)}
-                      />
-                    ))
-                  )}
-                </div>
-              </div>
-            </aside>
+
+
           </div>
         </Card>
       </Container>
