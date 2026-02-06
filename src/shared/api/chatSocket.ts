@@ -3,7 +3,7 @@ import type { ActorRole } from './chatApi';
 
 const API_BASE = import.meta.env.VITE_CHAT_API_URL || 'http://localhost:4000';
 
-export function createChatSocket(input: { role: ActorRole; actorId: number }) {
+export function createChatSocket(input: { role: ActorRole; actorId: string }) {
   // Allow polling fallback in case websocket is blocked by proxy/dev setup.
   const socket: Socket = io(API_BASE, {
     transports: ['websocket', 'polling'],

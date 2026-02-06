@@ -4,15 +4,29 @@ import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { UserChatPage } from '../pages/user-chat/ui/UserChatPage';
 import { TherapistChatPage } from '../pages/therapist-chat/ui/TherapistChatPage';
 import type { User } from '../shared/types/chat';
-import { Card, Container, IconButton, Pill, PrimaryButton, cx } from '../shared/ui/Ui';
+import { Card, Container, IconButton, Pill, PrimaryButton } from '../shared/ui/Ui';
+import { cn } from '../lib/utils';
 
 // Demo mapping (matches backend seed.sql)
 const DEMO = {
-  patient: { id: 'user_001', name: 'John Doe', email: 'john@example.com', role: 'user' as const },
-  therapist: { id: 'therapist_001', name: 'Dr. Sarah Johnson', email: 'sarah@example.com', role: 'therapist' as const },
-  patientActorId: 1,
-  therapistActorId: 10,
-};
+  patients: {
+    patient_1: { id: 'patient_1', name: 'John Cruz', email: 'john@example.com', role: 'user' as const },
+    patient_2: { id: 'patient_2', name: 'Ana Santos', email: 'ana@example.com', role: 'user' as const },
+  },
+  therapist: { id: 'therapist_10', name: 'Dr. Reyes', email: 'reyes@example.com', role: 'therapist' as const },
+  therapistActorId: 'therapist_10',
+} as const;
+
+function demoPatientFromPath(pathname: string): User {
+  // default patient
+  if (pathname.startsWith('/patient/patient_2')) return DEMO.patients.patient_2 as unknown as User;
+  return DEMO.patients.patient_1 as unknown as User;
+}
+
+function demoPatientActorIdFromPath(pathname: string): string {
+  if (pathname.startsWith('/patient/patient_2')) return 'patient_2';
+  return 'patient_1';
+}
 
 const Header = ({ currentUser }: { currentUser: User }) => {
   const nav = useNavigate();
@@ -38,8 +52,8 @@ const Header = ({ currentUser }: { currentUser: User }) => {
         <div className="flex items-center gap-2">
           <div className="hidden sm:flex items-center gap-2">
             <Link
-              to="/patient"
-              className={cx(
+              to="/patient/patient_1"
+              className={cn(
                 'rounded-xl border px-3 py-2 text-sm font-semibold',
                 loc.pathname.startsWith('/patient')
                   ? 'border-primary bg-surface-2'
@@ -50,7 +64,7 @@ const Header = ({ currentUser }: { currentUser: User }) => {
             </Link>
             <Link
               to="/therapist"
-              className={cx(
+              className={cn(
                 'rounded-xl border px-3 py-2 text-sm font-semibold',
                 loc.pathname.startsWith('/therapist')
                   ? 'border-primary bg-surface-2'
@@ -85,10 +99,16 @@ function Home() {
 
           <div className="mt-5 grid gap-3">
             <Link
-              to="/patient"
+              to="/patient/patient_1"
               className="rounded-xl border border-border bg-white hover:bg-surface-2 px-4 py-3 text-sm font-semibold"
             >
-              Patient view → /patient
+              Patient view (John) → /patient/patient_1
+            </Link>
+            <Link
+              to="/patient/patient_2"
+              className="rounded-xl border border-border bg-white hover:bg-surface-2 px-4 py-3 text-sm font-semibold"
+            >
+              Patient view (Ana) → /patient/patient_2
             </Link>
             <Link
               to="/therapist"
@@ -109,7 +129,9 @@ function Home() {
 
 function App() {
   const loc = useLocation();
-  const currentUser = loc.pathname.startsWith('/therapist') ? (DEMO.therapist as User) : (DEMO.patient as User);
+  const currentUser = loc.pathname.startsWith('/therapist')
+    ? (DEMO.therapist as unknown as User)
+    : demoPatientFromPath(loc.pathname);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -120,7 +142,11 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route
             path="/patient"
-            element={<UserChatPage currentUser={currentUser} actorId={DEMO.patientActorId} />}
+            element={<UserChatPage currentUser={currentUser} actorId={demoPatientActorIdFromPath(loc.pathname)} />}
+          />
+          <Route
+            path="/patient/:actorId"
+            element={<UserChatPage currentUser={currentUser} actorId={demoPatientActorIdFromPath(loc.pathname)} />}
           />
           <Route
             path="/therapist"
