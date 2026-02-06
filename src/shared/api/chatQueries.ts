@@ -4,6 +4,7 @@ import {
   listMessages,
   sendTextMessage,
   uploadFile,
+  markRead,
   type ActorRole,
 } from './chatApi';
 
@@ -39,6 +40,17 @@ export function useSendMessage() {
       qc.invalidateQueries({ queryKey: ['appointments'] });
       qc.invalidateQueries({ queryKey: ['messages', msg.senderRole, msg.senderId, msg.appointmentId] });
       qc.invalidateQueries({ queryKey: ['messages'] });
+    },
+  });
+}
+
+export function useMarkRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: markRead,
+    onSuccess: async () => {
+      // unreadCount lives in appointments list
+      await qc.invalidateQueries({ queryKey: ['appointments'] });
     },
   });
 }

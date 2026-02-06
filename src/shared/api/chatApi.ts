@@ -71,6 +71,16 @@ export async function uploadFile(input: {
   return data.message;
 }
 
+export async function markRead(input: {
+  role: ActorRole;
+  actorId: string;
+  appointmentId: number;
+  lastReadMessageId: number;
+}) {
+  const { data } = await http.post<{ ok: boolean }>('/api/chat/read', input);
+  return data;
+}
+
 export function publicAssetUrl(pathOrUrl: string) {
   if (!pathOrUrl) return '';
   if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;

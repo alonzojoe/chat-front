@@ -5,7 +5,7 @@ import ModalImage from "react-modal-image";
 
 import type { User } from '../../../shared/types/chat';
 import { publicAssetUrl, type AppointmentSummary, type ChatMessage } from '../../../shared/api/chatApi';
-import { useAppointments, useMessages, useSendMessage, useUploadFile } from '../../../shared/api/chatQueries';
+import { useAppointments, useMessages, useMarkRead, useSendMessage, useUploadFile } from '../../../shared/api/chatQueries';
 import { createChatSocket } from '../../../shared/api/chatSocket';
 import { Card, Container, IconButton, cx } from '../../../shared/ui/Ui';
 
@@ -125,7 +125,31 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
   const messagesQuery = useMessages('therapist', actorId, activeAppointmentId);
   const messages = messagesQuery.data ?? [];
 
+  // Mark as read (therapist) whenever we open a thread / messages load.
+  // Simplest behavior: set lastRead to the newest message id we have.
+  useEffect(() => {
+    if (!activeAppointmentId) return;
+    if (!messages || messages.length === 0) return;
+
+    const lastId = messages[messages.length - 1]?.id;
+    if (!lastId) return;
+
+    // Only bother if there are unread messages in this thread.
+    if (!active?.unreadCount || active.unreadCount <= 0) return;
+
+    if (markReadMutation.isPending) return;
+
+    void markReadMutation.mutateAsync({
+      role: 'therapist',
+      actorId,
+      appointmentId: activeAppointmentId,
+      lastReadMessageId: lastId,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeAppointmentId, messages.length, active?.unreadCount]);
+
   const sendMutation = useSendMessage();
+  const markReadMutation = useMarkRead();
   const uploadMutation = useUploadFile();
 
   // socket
@@ -148,6 +172,11 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
       void apptsQuery.refetch();
     });
 
+    // When therapist marks read, refresh appointments list so unread badges drop.
+    socketRef.current.socket.on('read:updated', () => {
+      void apptsQuery.refetch();
+    });
+
     return () => {
       socketRef.current?.close();
       socketRef.current = null;
@@ -166,6 +195,11 @@ export const TherapistChatPage: React.FC<TherapistChatProps> = ({ actorId }) => 
     activeAppointmentIdRef.current = appt.appointmentId;
     setActive(appt);
     setMobileMode('chat');
+
+    // Optimistically clear the badge in UI; server will be updated once messages load.
+    if (appt.unreadCount && appt.unreadCount > 0) {
+      setActive({ ...appt, unreadCount: 0 });
+    }
   };
 
   const isLoading = apptsQuery.isLoading || (Boolean(activeAppointmentId) && messagesQuery.isLoading);
