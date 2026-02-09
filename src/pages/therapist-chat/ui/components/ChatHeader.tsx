@@ -1,7 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
 
 import type { AppointmentSummary } from '../../../../shared/api/chatApi';
-import { IconButton } from '../../../../shared/ui/Ui';
 import { Avatar } from './Avatar';
 
 type ChatHeaderProps = {
