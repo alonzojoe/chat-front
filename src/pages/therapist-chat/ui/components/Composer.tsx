@@ -1,4 +1,4 @@
-import { Paperclip, Send } from 'lucide-react';
+import { Loader2, Paperclip, Send } from 'lucide-react';
 
 import { cn } from '../../../../lib/utils';
 
@@ -8,9 +8,10 @@ type ComposerProps = {
   onSend: (e: React.FormEvent) => void;
   onPickFile: (file: File) => void;
   disabled?: boolean;
+  isSending?: boolean;
 };
 
-export const Composer = ({ value, onChange, onSend, onPickFile, disabled }: ComposerProps) => {
+export const Composer = ({ value, onChange, onSend, onPickFile, disabled, isSending }: ComposerProps) => {
   return (
     <div className="p-4 bg-white border-t border-border">
       <form onSubmit={onSend} className="flex items-end gap-3">
@@ -51,7 +52,7 @@ export const Composer = ({ value, onChange, onSend, onPickFile, disabled }: Comp
           )}
           aria-label="Send"
         >
-          <Send className="w-5 h-5" />
+          {isSending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
         </button>
       </form>
     </div>

@@ -104,6 +104,7 @@ export const TherapistChatPage = ({ actorId }: TherapistChatProps) => {
                     onSend={send}
                     onPickFile={onPickFile}
                     disabled={sendDisabled}
+                    isSending={sendDisabled}
                   />
                 </>
               ) : (

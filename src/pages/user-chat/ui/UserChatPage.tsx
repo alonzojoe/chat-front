@@ -86,6 +86,7 @@ export const UserChatPage = ({ actorId }: UserChatProps) => {
               onSend={send}
               onPickFile={onPickFile}
               disabled={sendDisabled}
+              isSending={sendDisabled}
             />
           </div>
         </Card>
