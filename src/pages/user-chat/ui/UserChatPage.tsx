@@ -27,6 +27,7 @@ export const UserChatPage = ({ actorId }: UserChatProps) => {
     therapistName,
     messagesEndRef,
     sendDisabled,
+    isSending,
   } = useUserChatController({ actorId });
 
   if (isLoading) {
@@ -86,6 +87,7 @@ export const UserChatPage = ({ actorId }: UserChatProps) => {
               onSend={send}
               onPickFile={onPickFile}
               disabled={sendDisabled}
+              isSending={isSending}
             />
           </div>
         </Card>
