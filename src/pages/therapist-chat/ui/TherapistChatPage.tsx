@@ -36,6 +36,7 @@ export const TherapistChatPage = ({ actorId }: TherapistChatProps) => {
     backToListMobile,
     messagesEndRef,
     sendDisabled,
+    isSending,
   } = useTherapistChatController({ actorId });
 
   if (isLoading) {
@@ -104,7 +105,7 @@ export const TherapistChatPage = ({ actorId }: TherapistChatProps) => {
                     onSend={send}
                     onPickFile={onPickFile}
                     disabled={sendDisabled}
-                    isSending={sendDisabled}
+                    isSending={isSending}
                   />
                 </>
               ) : (

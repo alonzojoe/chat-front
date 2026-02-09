@@ -133,7 +133,8 @@ export const useTherapistChatController = ({ actorId }: UseTherapistChatControll
       setMobileMode,
       backToListMobile,
       messagesEndRef,
-      sendDisabled: sendMutation.isPending,
+      sendDisabled: sendMutation.isPending || uploadMutation.isPending,
+      isSending: sendMutation.isPending || uploadMutation.isPending,
     }),
     [
       threads,
@@ -145,6 +146,7 @@ export const useTherapistChatController = ({ actorId }: UseTherapistChatControll
       messageText,
       mobileMode,
       sendMutation.isPending,
+      uploadMutation.isPending,
     ]
   );
 };

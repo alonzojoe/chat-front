@@ -116,7 +116,8 @@ export const useUserChatController = ({ actorId }: UseUserChatControllerInput) =
       openThread,
       therapistName,
       messagesEndRef,
-      sendDisabled: sendMutation.isPending,
+      sendDisabled: sendMutation.isPending || uploadMutation.isPending,
+      isSending: sendMutation.isPending || uploadMutation.isPending,
     }),
     [
       threads,
@@ -127,6 +128,7 @@ export const useUserChatController = ({ actorId }: UseUserChatControllerInput) =
       error,
       messageText,
       sendMutation.isPending,
+      uploadMutation.isPending,
     ]
   );
 };

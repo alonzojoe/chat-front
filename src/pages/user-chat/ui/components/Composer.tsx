@@ -16,12 +16,16 @@ export const Composer = ({ value, onChange, onSend, onPickFile, disabled, isSend
     <div className="p-4 bg-white border-t border-border">
       <form onSubmit={onSend} className="flex items-end gap-3">
         <label
-          className="grid h-12 w-12 place-items-center rounded-xl border border-border bg-white hover:bg-surface-2 cursor-pointer"
+          className={cn(
+            "grid h-12 w-12 place-items-center rounded-xl border border-border bg-white",
+            disabled ? "cursor-not-allowed opacity-60" : "hover:bg-surface-2 cursor-pointer"
+          )}
           title="Attach file"
         >
           <input
             className="hidden"
             type="file"
+            disabled={disabled}
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) onPickFile(f);
