@@ -12,6 +12,7 @@ export function createChatSocket(input: { role: ActorRole; actorId: string }) {
   socket.on('connect', () => {
     // eslint-disable-next-line no-console
     console.log('[chat-socket] connected', socket.id);
+    socket.emit('join:actor', { role: input.role, actorId: input.actorId });
   });
   socket.on('connect_error', (err) => {
     // eslint-disable-next-line no-console
