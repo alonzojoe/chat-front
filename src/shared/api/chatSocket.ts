@@ -21,8 +21,8 @@ export function createChatSocket(input: { role: ActorRole; actorId: string }) {
 
   return {
     socket,
-    joinAppointment(appointmentId: string) {
-      socket.emit('join', { appointmentId, role: input.role, actorId: input.actorId });
+    joinConversation(conversationId: string) {
+      socket.emit('join', { conversationId, role: input.role, actorId: input.actorId });
     },
     close() {
       socket.disconnect();

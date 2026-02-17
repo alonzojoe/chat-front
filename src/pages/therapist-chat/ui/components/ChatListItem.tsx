@@ -1,9 +1,9 @@
-import type { AppointmentSummary } from '../../../../shared/api/chatApi';
+import type { ConversationSummary } from '../../../../shared/api/chatApi';
 import { cn } from '../../../../lib/utils';
 import { Avatar } from './Avatar';
 
 type ChatListItemProps = {
-  info: AppointmentSummary;
+  info: ConversationSummary;
   active: boolean;
   onClick: () => void;
   formatClock: (date: string | undefined) => string;
@@ -24,12 +24,12 @@ export const ChatListItem = ({ info, active, onClick, formatClock }: ChatListIte
       aria-current={active ? 'page' : undefined}
     >
       <div className="flex items-center gap-3">
-        <Avatar name={info.patientName} size={44} ring={active} />
+        <Avatar name={info.clientName} size={44} ring={active} />
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900 truncate">{info.patientName}</p>
+              <p className="text-sm font-semibold text-slate-900 truncate">{info.clientName}</p>
               <p className="mt-0.5 text-sm truncate text-slate-600">{last}</p>
             </div>
 

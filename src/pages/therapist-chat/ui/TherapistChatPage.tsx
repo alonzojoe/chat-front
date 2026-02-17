@@ -23,7 +23,7 @@ export const TherapistChatPage = ({ actorId }: TherapistChatProps) => {
   const {
     threads,
     active,
-    activeAppointmentId,
+    activeConversationId,
     messages,
     isLoading,
     error,
@@ -70,7 +70,7 @@ export const TherapistChatPage = ({ actorId }: TherapistChatProps) => {
 
             <InboxPanel
               threads={threads}
-              activeAppointmentId={activeAppointmentId}
+              activeConversationId={activeConversationId}
               onOpenThread={openThread}
               formatClock={formatClock}
               hidden={mobileMode === 'chat'}
@@ -91,7 +91,7 @@ export const TherapistChatPage = ({ actorId }: TherapistChatProps) => {
                             message={msg}
                             isOwn={isOwn}
                             timeLabel={formatClock(msg.createdAt)}
-                            sideAvatar={!isOwn && active ? <Avatar name={active.patientName} size={28} /> : undefined}
+                            sideAvatar={!isOwn && active ? <Avatar name={active.clientName} size={28} /> : undefined}
                           />
                         );
                       })}

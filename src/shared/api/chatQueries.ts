@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  listAppointments,
+  listConversations,
   listMessages,
   sendTextMessage,
   uploadFile,
@@ -9,26 +9,26 @@ import {
 } from './chatApi';
 
 export const chatKeys = {
-  appointments: (role: ActorRole, actorId: string) => ['appointments', role, actorId] as const,
-  messages: (role: ActorRole, actorId: string, appointmentId: string) =>
-    ['messages', role, actorId, appointmentId] as const,
+  conversations: (role: ActorRole, actorId: string) => ['conversations', role, actorId] as const,
+  messages: (role: ActorRole, actorId: string, conversationId: string) =>
+    ['messages', role, actorId, conversationId] as const,
 };
 
-export function useAppointments(role: ActorRole, actorId: string) {
+export function useConversations(role: ActorRole, actorId: string) {
   return useQuery({
-    queryKey: chatKeys.appointments(role, actorId),
-    queryFn: () => listAppointments({ role, actorId }),
+    queryKey: chatKeys.conversations(role, actorId),
+    queryFn: () => listConversations({ role, actorId }),
   });
 }
 
-export function useMessages(role: ActorRole, actorId: string, appointmentId: string | null) {
+export function useMessages(role: ActorRole, actorId: string, conversationId: string | null) {
   return useQuery({
-    queryKey: appointmentId ? chatKeys.messages(role, actorId, appointmentId) : ['messages', role, actorId, 'none'],
+    queryKey: conversationId ? chatKeys.messages(role, actorId, conversationId) : ['messages', role, actorId, 'none'],
     queryFn: () => {
-      if (!appointmentId) return Promise.resolve([]);
-      return listMessages({ role, actorId, appointmentId });
+      if (!conversationId) return Promise.resolve([]);
+      return listMessages({ role, actorId, conversationId });
     },
-    enabled: Boolean(appointmentId),
+    enabled: Boolean(conversationId),
   });
 }
 
@@ -37,8 +37,8 @@ export function useSendMessage() {
   return useMutation({
     mutationFn: sendTextMessage,
     onSuccess: (msg) => {
-      qc.invalidateQueries({ queryKey: ['appointments'] });
-      qc.invalidateQueries({ queryKey: ['messages', msg.senderRole, msg.senderId, msg.appointmentId] });
+      qc.invalidateQueries({ queryKey: ['conversations'] });
+      qc.invalidateQueries({ queryKey: ['messages', msg.senderRole, msg.senderId, msg.conversationId] });
       qc.invalidateQueries({ queryKey: ['messages'] });
     },
   });
@@ -50,7 +50,7 @@ export function useMarkRead() {
     mutationFn: markRead,
     onSuccess: async () => {
       // unreadCount lives in appointments list
-      await qc.invalidateQueries({ queryKey: ['appointments'] });
+      await qc.invalidateQueries({ queryKey: ['conversations'] });
     },
   });
 }
@@ -60,8 +60,8 @@ export function useUploadFile() {
   return useMutation({
     mutationFn: uploadFile,
     onSuccess: (msg) => {
-      qc.invalidateQueries({ queryKey: ['appointments'] });
-      qc.invalidateQueries({ queryKey: ['messages', msg.senderRole, msg.senderId, msg.appointmentId] });
+      qc.invalidateQueries({ queryKey: ['conversations'] });
+      qc.invalidateQueries({ queryKey: ['messages', msg.senderRole, msg.senderId, msg.conversationId] });
       qc.invalidateQueries({ queryKey: ['messages'] });
     },
   });

@@ -1,13 +1,13 @@
 import { FileText } from 'lucide-react';
 import ModalImage from 'react-modal-image';
 
-import type { AppointmentSummary, ChatMessage } from '../../../../shared/api/chatApi';
+import type { ConversationSummary, ChatMessage } from '../../../../shared/api/chatApi';
 import { publicAssetUrl } from '../../../../shared/api/chatApi';
 import { cn } from '../../../../lib/utils';
 import { Avatar } from './Avatar';
 
 type PatientInfoPanelProps = {
-  active: AppointmentSummary | null;
+  active: ConversationSummary | null;
   messages: ChatMessage[];
 };
 
@@ -22,9 +22,9 @@ export const PatientInfoPanel = ({ active, messages }: PatientInfoPanelProps) =>
     <aside className="hidden sm:block h-full min-h-0 border-r border-border bg-white">
       <div className="h-full min-h-0 flex flex-col">
         <div className="p-6 border-b border-border flex flex-col items-center">
-          <Avatar name={active?.patientName || 'Patient'} size={96} ring />
+          <Avatar name={active?.clientName || 'Patient'} size={96} ring />
           <p className="mt-3 text-base font-semibold text-slate-900">
-            {active?.patientName || 'Select a conversation'}
+            {active?.clientName || 'Select a conversation'}
           </p>
         </div>
 

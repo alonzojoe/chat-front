@@ -15,7 +15,7 @@ type UserChatProps = {
 export const UserChatPage = ({ actorId }: UserChatProps) => {
   const {
     threads,
-    activeAppointmentId,
+    activeConversationId,
     messages,
     isLoading,
     error,
@@ -60,7 +60,7 @@ export const UserChatPage = ({ actorId }: UserChatProps) => {
             <ChatHeader
               therapistName={therapistName}
               threads={threads}
-              activeAppointmentId={activeAppointmentId}
+              activeConversationId={activeConversationId}
               onPickThread={openThread}
             />
 

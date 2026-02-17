@@ -1,18 +1,18 @@
 import { Search } from 'lucide-react';
 
-import type { AppointmentSummary } from '../../../../shared/api/chatApi';
+import type { ConversationSummary } from '../../../../shared/api/chatApi';
 import { cn } from '../../../../lib/utils';
 import { ChatListItem } from './ChatListItem';
 
 type InboxPanelProps = {
-  threads: AppointmentSummary[];
-  activeAppointmentId: number | null;
-  onOpenThread: (appt: AppointmentSummary) => void;
+  threads: ConversationSummary[];
+  activeConversationId: string | null;
+  onOpenThread: (appt: ConversationSummary) => void;
   formatClock: (date: string | undefined) => string;
   hidden?: boolean;
 };
 
-export const InboxPanel = ({ threads, activeAppointmentId, onOpenThread, formatClock, hidden }: InboxPanelProps) => {
+export const InboxPanel = ({ threads, activeConversationId, onOpenThread, formatClock, hidden }: InboxPanelProps) => {
   return (
     <aside className={cn('h-full min-h-0 border-l border-border bg-white', hidden && 'hidden sm:block')}>
       <div className="h-full min-h-0 flex flex-col">
@@ -42,9 +42,9 @@ export const InboxPanel = ({ threads, activeAppointmentId, onOpenThread, formatC
           ) : (
             threads.map((t) => (
               <ChatListItem
-                key={t.appointmentId}
+                key={t.conversationId}
                 info={t}
-                active={activeAppointmentId === t.appointmentId}
+                active={activeConversationId === t.conversationId}
                 onClick={() => onOpenThread(t)}
                 formatClock={formatClock}
               />
