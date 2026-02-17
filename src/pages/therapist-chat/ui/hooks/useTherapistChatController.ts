@@ -72,7 +72,10 @@ export const useTherapistChatController = ({ actorId }: UseTherapistChatControll
     const lastId = messages[messages.length - 1]?.id;
     if (!lastId) return;
 
-    if (!active?.unreadCount || active.unreadCount <= 0) return;
+    const hasUnread = messages.some(
+      (msg) => msg.senderRole === 'patient' && !msg.seenAt
+    );
+    if (!hasUnread) return;
     if (markReadMutation.isPending) return;
 
     void markReadMutation.mutateAsync({
@@ -82,7 +85,7 @@ export const useTherapistChatController = ({ actorId }: UseTherapistChatControll
       lastReadMessageId: lastId,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeAppointmentId, messages.length, active?.unreadCount]);
+  }, [activeAppointmentId, messages.length]);
 
   const openThread = (appt: AppointmentSummary) => {
     activeAppointmentIdRef.current = appt.appointmentId;

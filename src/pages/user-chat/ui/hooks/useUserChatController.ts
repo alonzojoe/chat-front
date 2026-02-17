@@ -58,6 +58,10 @@ export const useUserChatController = ({ actorId }: UseUserChatControllerInput) =
       void apptsQuery.refetch();
     });
 
+    socketRef.current.socket.on('read:updated', () => {
+      void apptsQuery.refetch();
+    });
+
     return () => {
       socketRef.current?.close();
       socketRef.current = null;
@@ -78,7 +82,10 @@ export const useUserChatController = ({ actorId }: UseUserChatControllerInput) =
     const lastId = messages[messages.length - 1]?.id;
     if (!lastId) return;
 
-    if (!active?.unreadCount || active.unreadCount <= 0) return;
+    const hasUnread = messages.some(
+      (msg) => msg.senderRole === 'therapist' && !msg.seenAt
+    );
+    if (!hasUnread) return;
     if (markReadMutation.isPending) return;
 
     void markReadMutation.mutateAsync({
@@ -88,7 +95,7 @@ export const useUserChatController = ({ actorId }: UseUserChatControllerInput) =
       lastReadMessageId: lastId,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeAppointmentId, messages.length, active?.unreadCount]);
+  }, [activeAppointmentId, messages.length]);
 
   const openThread = (appt: AppointmentSummary) => {
     activeAppointmentIdRef.current = appt.appointmentId;
