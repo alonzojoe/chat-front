@@ -1,10 +1,10 @@
 import { ArrowLeft } from 'lucide-react';
 
-import type { AppointmentSummary } from '../../../../shared/api/chatApi';
+import type { ConversationSummary } from '../../../../shared/api/chatApi';
 import { Avatar } from './Avatar';
 
 type ChatHeaderProps = {
-  active: AppointmentSummary;
+  active: ConversationSummary;
   onBackMobile: () => void;
 };
 
@@ -20,10 +20,10 @@ export const ChatHeader = ({ active, onBackMobile }: ChatHeaderProps) => {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <Avatar name={active.patientName} size={42} ring />
+          <Avatar name={active.clientName} size={42} ring />
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-900 truncate">{active.patientName}</p>
-            <p className="text-xs text-slate-500 truncate">Appt #{active.appointmentId}</p>
+            <p className="text-sm font-semibold text-slate-900 truncate">{active.clientName}</p>
+            <p className="text-xs text-slate-500 truncate">Thread #{active.conversationId.slice(-6)}</p>
           </div>
         </div>
       </div>

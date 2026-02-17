@@ -2,23 +2,20 @@ import { http, API_BASE_URL } from './http';
 
 export type ActorRole = 'patient' | 'therapist';
 
-export type AppointmentSummary = {
-  appointmentId: number;
-  mongoAppointmentId?: string | null;
-  patientId: string;
-  patientName: string;
+export type ConversationSummary = {
+  conversationId: string;
+  clientId: string;
+  clientName: string;
   therapistId: string;
   therapistName: string;
-  startsAt: string;
-  status: string;
   lastMessage: string | null;
   lastMessageAt: string | null;
   unreadCount?: number;
 };
 
 export type ChatMessage = {
-  id: number;
-  appointmentId: number;
+  id: string;
+  conversationId: string;
   senderRole: ActorRole;
   senderId: string;
   body: string | null;
@@ -26,16 +23,17 @@ export type ChatMessage = {
   fileName: string | null;
   fileType: string | null;
   createdAt: string;
+  seenAt?: string | null;
 };
 
-export async function listAppointments(input: { role: ActorRole; actorId: string }) {
-  const { data } = await http.get<{ appointments: AppointmentSummary[] }>('/api/appointments', {
+export async function listConversations(input: { role: ActorRole; actorId: string }) {
+  const { data } = await http.get<{ conversations: ConversationSummary[] }>('/api/conversations', {
     params: input,
   });
-  return data.appointments || [];
+  return data.conversations || [];
 }
 
-export async function listMessages(input: { role: ActorRole; actorId: string; appointmentId: number }) {
+export async function listMessages(input: { role: ActorRole; actorId: string; conversationId: string }) {
   const { data } = await http.get<{ messages: ChatMessage[] }>('/api/chat/messages', {
     params: input,
   });
@@ -45,7 +43,7 @@ export async function listMessages(input: { role: ActorRole; actorId: string; ap
 export async function sendTextMessage(input: {
   role: ActorRole;
   actorId: string;
-  appointmentId: number;
+  conversationId: string;
   body: string;
 }) {
   const { data } = await http.post<{ message: ChatMessage }>('/api/chat/message', input);
@@ -55,13 +53,13 @@ export async function sendTextMessage(input: {
 export async function uploadFile(input: {
   role: ActorRole;
   actorId: string;
-  appointmentId: number;
+  conversationId: string;
   file: File;
 }) {
   const fd = new FormData();
   fd.set('role', input.role);
   fd.set('actorId', String(input.actorId));
-  fd.set('appointmentId', String(input.appointmentId));
+  fd.set('conversationId', String(input.conversationId));
   fd.set('file', input.file);
 
   const { data } = await http.post<{ message: ChatMessage }>('/api/chat/upload', fd, {
@@ -74,8 +72,8 @@ export async function uploadFile(input: {
 export async function markRead(input: {
   role: ActorRole;
   actorId: string;
-  appointmentId: number;
-  lastReadMessageId: number;
+  conversationId: string;
+  lastReadMessageId?: string;
 }) {
   const { data } = await http.post<{ ok: boolean }>('/api/chat/read', input);
   return data;
