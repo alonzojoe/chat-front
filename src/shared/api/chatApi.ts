@@ -3,13 +3,13 @@ import { http, API_BASE_URL } from './http';
 export type ActorRole = 'patient' | 'therapist';
 
 export type AppointmentSummary = {
-  appointmentId: number;
-  mongoAppointmentId?: string | null;
+  appointmentId: string;
   patientId: string;
   patientName: string;
   therapistId: string;
   therapistName: string;
   startsAt: string;
+  appointmentDateTime?: string | null;
   status: string;
   lastMessage: string | null;
   lastMessageAt: string | null;
@@ -17,8 +17,8 @@ export type AppointmentSummary = {
 };
 
 export type ChatMessage = {
-  id: number;
-  appointmentId: number;
+  id: string;
+  appointmentId: string;
   senderRole: ActorRole;
   senderId: string;
   body: string | null;
@@ -26,6 +26,7 @@ export type ChatMessage = {
   fileName: string | null;
   fileType: string | null;
   createdAt: string;
+  seenAt?: string | null;
 };
 
 export async function listAppointments(input: { role: ActorRole; actorId: string }) {
@@ -35,7 +36,7 @@ export async function listAppointments(input: { role: ActorRole; actorId: string
   return data.appointments || [];
 }
 
-export async function listMessages(input: { role: ActorRole; actorId: string; appointmentId: number }) {
+export async function listMessages(input: { role: ActorRole; actorId: string; appointmentId: string }) {
   const { data } = await http.get<{ messages: ChatMessage[] }>('/api/chat/messages', {
     params: input,
   });
@@ -45,7 +46,7 @@ export async function listMessages(input: { role: ActorRole; actorId: string; ap
 export async function sendTextMessage(input: {
   role: ActorRole;
   actorId: string;
-  appointmentId: number;
+  appointmentId: string;
   body: string;
 }) {
   const { data } = await http.post<{ message: ChatMessage }>('/api/chat/message', input);
@@ -55,7 +56,7 @@ export async function sendTextMessage(input: {
 export async function uploadFile(input: {
   role: ActorRole;
   actorId: string;
-  appointmentId: number;
+  appointmentId: string;
   file: File;
 }) {
   const fd = new FormData();
@@ -74,8 +75,8 @@ export async function uploadFile(input: {
 export async function markRead(input: {
   role: ActorRole;
   actorId: string;
-  appointmentId: number;
-  lastReadMessageId: number;
+  appointmentId: string;
+  lastReadMessageId?: string;
 }) {
   const { data } = await http.post<{ ok: boolean }>('/api/chat/read', input);
   return data;

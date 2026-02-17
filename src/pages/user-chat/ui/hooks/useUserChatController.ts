@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import type { AppointmentSummary, ChatMessage } from '../../../../shared/api/chatApi';
-import { useAppointments, useMessages, useSendMessage, useUploadFile } from '../../../../shared/api/chatQueries';
+import { useAppointments, useMarkRead, useMessages, useSendMessage, useUploadFile } from '../../../../shared/api/chatQueries';
 import { createChatSocket } from '../../../../shared/api/chatSocket';
 
 type UseUserChatControllerInput = {
@@ -13,7 +13,7 @@ export const useUserChatController = ({ actorId }: UseUserChatControllerInput) =
   const qc = useQueryClient();
 
   const [active, setActive] = useState<AppointmentSummary | null>(null);
-  const activeAppointmentIdRef = useRef<number | null>(null);
+  const activeAppointmentIdRef = useRef<string | null>(null);
   const [messageText, setMessageText] = useState('');
 
   const apptsQuery = useAppointments('patient', actorId);
@@ -34,6 +34,7 @@ export const useUserChatController = ({ actorId }: UseUserChatControllerInput) =
 
   const sendMutation = useSendMessage();
   const uploadMutation = useUploadFile();
+  const markReadMutation = useMarkRead();
 
   // socket
   const socketRef = useRef<ReturnType<typeof createChatSocket> | null>(null);
@@ -68,6 +69,26 @@ export const useUserChatController = ({ actorId }: UseUserChatControllerInput) =
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
+
+  // Mark as read (patient) whenever we open a thread / messages load.
+  useEffect(() => {
+    if (!activeAppointmentId) return;
+    if (!messages || messages.length === 0) return;
+
+    const lastId = messages[messages.length - 1]?.id;
+    if (!lastId) return;
+
+    if (!active?.unreadCount || active.unreadCount <= 0) return;
+    if (markReadMutation.isPending) return;
+
+    void markReadMutation.mutateAsync({
+      role: 'patient',
+      actorId,
+      appointmentId: activeAppointmentId,
+      lastReadMessageId: lastId,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeAppointmentId, messages.length, active?.unreadCount]);
 
   const openThread = (appt: AppointmentSummary) => {
     activeAppointmentIdRef.current = appt.appointmentId;

@@ -20,7 +20,7 @@ export function createChatSocket(input: { role: ActorRole; actorId: string }) {
 
   return {
     socket,
-    joinAppointment(appointmentId: number) {
+    joinAppointment(appointmentId: string) {
       socket.emit('join', { appointmentId, role: input.role, actorId: input.actorId });
     },
     close() {

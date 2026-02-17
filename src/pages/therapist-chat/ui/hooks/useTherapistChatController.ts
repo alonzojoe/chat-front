@@ -13,7 +13,7 @@ export const useTherapistChatController = ({ actorId }: UseTherapistChatControll
   const qc = useQueryClient();
 
   const [active, setActive] = useState<AppointmentSummary | null>(null);
-  const activeAppointmentIdRef = useRef<number | null>(null);
+  const activeAppointmentIdRef = useRef<string | null>(null);
   const [messageText, setMessageText] = useState('');
   const [mobileMode, setMobileMode] = useState<'list' | 'chat'>('list');
 

@@ -10,7 +10,7 @@ import {
 
 export const chatKeys = {
   appointments: (role: ActorRole, actorId: string) => ['appointments', role, actorId] as const,
-  messages: (role: ActorRole, actorId: string, appointmentId: number) =>
+  messages: (role: ActorRole, actorId: string, appointmentId: string) =>
     ['messages', role, actorId, appointmentId] as const,
 };
 
@@ -21,7 +21,7 @@ export function useAppointments(role: ActorRole, actorId: string) {
   });
 }
 
-export function useMessages(role: ActorRole, actorId: string, appointmentId: number | null) {
+export function useMessages(role: ActorRole, actorId: string, appointmentId: string | null) {
   return useQuery({
     queryKey: appointmentId ? chatKeys.messages(role, actorId, appointmentId) : ['messages', role, actorId, 'none'],
     queryFn: () => {
