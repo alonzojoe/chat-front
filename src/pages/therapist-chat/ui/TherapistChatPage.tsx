@@ -1,6 +1,7 @@
 import type { User } from '../../../shared/types/chat';
 import { Card, Container } from '../../../shared/ui/Ui';
 import { cn } from '../../../lib/utils';
+import { getUserName } from '../../../shared/data/users';
 
 import type { ChatMessage } from '../../../shared/api/chatApi';
 
@@ -85,13 +86,14 @@ export const TherapistChatPage = ({ actorId }: TherapistChatProps) => {
                     <div className="space-y-3">
                       {messages.map((msg: ChatMessage) => {
                         const isOwn = msg.senderRole === 'therapist' && msg.senderId === actorId;
+                        const clientName = getUserName(active?.clientId, 'Patient');
                         return (
                           <MessageBubble
                             key={msg.id}
                             message={msg}
                             isOwn={isOwn}
                             timeLabel={formatClock(msg.createdAt)}
-                            sideAvatar={!isOwn && active ? <Avatar name={active.clientName} size={28} /> : undefined}
+                            sideAvatar={!isOwn && active ? <Avatar name={clientName} size={28} /> : undefined}
                           />
                         );
                       })}

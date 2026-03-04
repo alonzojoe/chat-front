@@ -5,9 +5,7 @@ export type ActorRole = 'patient' | 'therapist';
 export type ConversationSummary = {
   conversationId: string;
   clientId: string;
-  clientName: string;
   therapistId: string;
-  therapistName: string;
   lastMessage: string | null;
   lastMessageAt: string | null;
   unreadCount?: number;
