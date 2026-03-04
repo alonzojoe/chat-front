@@ -3,6 +3,7 @@ import ModalImage from 'react-modal-image';
 
 import type { ConversationSummary, ChatMessage } from '../../../../shared/api/chatApi';
 import { publicAssetUrl } from '../../../../shared/api/chatApi';
+import { getUserName } from '../../../../shared/data/users';
 import { cn } from '../../../../lib/utils';
 import { Avatar } from './Avatar';
 
@@ -18,13 +19,15 @@ export const PatientInfoPanel = ({ active, messages }: PatientInfoPanelProps) =>
     .reverse()
     .slice(0, 12);
 
+  const patientName = getUserName(active?.clientId, 'Patient');
+
   return (
     <aside className="hidden sm:block h-full min-h-0 border-r border-border bg-white">
       <div className="h-full min-h-0 flex flex-col">
         <div className="p-6 border-b border-border flex flex-col items-center">
-          <Avatar name={active?.clientName || 'Patient'} size={96} ring />
+          <Avatar name={patientName} size={96} ring />
           <p className="mt-3 text-base font-semibold text-slate-900">
-            {active?.clientName || 'Select a conversation'}
+            {active ? patientName : 'Select a conversation'}
           </p>
         </div>
 

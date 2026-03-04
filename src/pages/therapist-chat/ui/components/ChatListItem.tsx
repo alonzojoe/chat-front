@@ -1,4 +1,5 @@
 import type { ConversationSummary } from '../../../../shared/api/chatApi';
+import { getUserName } from '../../../../shared/data/users';
 import { cn } from '../../../../lib/utils';
 import { Avatar } from './Avatar';
 
@@ -11,6 +12,7 @@ type ChatListItemProps = {
 
 export const ChatListItem = ({ info, active, onClick, formatClock }: ChatListItemProps) => {
   const last = info.lastMessage || 'No messages yet';
+  const clientName = getUserName(info.clientId, 'Patient');
 
   return (
     <button
@@ -24,12 +26,12 @@ export const ChatListItem = ({ info, active, onClick, formatClock }: ChatListIte
       aria-current={active ? 'page' : undefined}
     >
       <div className="flex items-center gap-3">
-        <Avatar name={info.clientName} size={44} ring={active} />
+        <Avatar name={clientName} size={44} ring={active} />
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900 truncate">{info.clientName}</p>
+              <p className="text-sm font-semibold text-slate-900 truncate">{clientName}</p>
               <p className="mt-0.5 text-sm truncate text-slate-600">{last}</p>
             </div>
 

@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { ConversationSummary, ChatMessage } from '../../../../shared/api/chatApi';
 import { useConversations, useMarkRead, useMessages, useSendMessage, useUploadFile } from '../../../../shared/api/chatQueries';
 import { createChatSocket } from '../../../../shared/api/chatSocket';
+import { getUserName } from '../../../../shared/data/users';
 
 type UseUserChatControllerInput = {
   actorId: string;
@@ -100,7 +101,7 @@ export const useUserChatController = ({ actorId }: UseUserChatControllerInput) =
     setActive(convo);
   };
 
-  const therapistName = active?.therapistName || 'Your Therapist';
+  const therapistName = getUserName(active?.therapistId, 'Your Therapist');
 
   const isLoading = convosQuery.isLoading || (Boolean(activeConversationId) && messagesQuery.isLoading);
   const error = (convosQuery.error || messagesQuery.error) as Error | null;
